@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desetinný krystal – RPG</title>
+<style>
+:root {
+  --bg:#101827;--panel:#1c2b42;--panel2:#293d59;
+  --gold:#ffd166;--text:#f4f6fa;--muted:#b5c4d8;
+  --green:#5bd69a;--red:#ff7777;--blue:#72b7ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;padding:16px;min-height:100vh;color:var(--text);
+  font:16px/1.5 system-ui,Segoe UI,Arial,sans-serif;
+  background:radial-gradient(circle at top,#30496b,#101827 70%);
+}
+main{max-width:1050px;margin:auto}
+h1{color:var(--gold);font-size:clamp(1.8rem,5vw,2.7rem)}
+h2,h3{margin-top:5px}
+.panel{
+  background:var(--panel);border:1px solid #405877;
+  border-radius:16px;padding:18px;margin:14px 0;
+  box-shadow:0 8px 22px #0004;
+}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.hidden{display:none!important}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.row>*{flex:1}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+button,input,select{font:inherit;border-radius:10px;padding:11px}
+button{
+  cursor:pointer;border:1px solid #65809e;background:#31577f;
+  color:white;font-weight:700;
+}
+button:hover:not(:disabled){filter:brightness(1.2)}
+button:disabled{opacity:.4;cursor:not-allowed}
+input,select{background:#f5f7fb;color:#172336;border:1px solid #8a9bb0}
+input{width:100%}
+.primary{background:#b7791f;color:#17120a;border:0}
+.class-card{
+  background:var(--panel2);border:2px solid #405877;
+  border-radius:14px;padding:14px;text-align:left;min-height:145px;
+}
+.class-card.selected{border-color:var(--gold)}
+.class-card .emoji{font-size:2.4rem}
+.class-card strong{display:block;color:var(--gold);font-size:1.15rem}
+.class-card small{display:block;color:var(--muted);margin-top:5px}
+.secret-card{border-style:dashed}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.stat{background:var(--panel2);border-radius:11px;padding:9px;text-align:center}
+.stat span{display:block;color:var(--muted);font-size:.8rem}
+.stat strong{display:block;font-size:1.3rem;color:var(--gold)}
+.bar{height:13px;border-radius:20px;background:#101827;overflow:hidden;margin:6px 0}
+.bar span{display:block;height:100%;width:100%;background:linear-gradient(90deg,#e65b5b,#ffb45b);transition:width .25s}
+.hero-bar span{background:linear-gradient(90deg,#239d72,#67e5a7)}
+.enemy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.enemy-card{background:var(--panel2);border:2px solid #405877;border-radius:13px;padding:12px;cursor:pointer}
+.enemy-card.target{border-color:var(--gold)}
+.enemy-card.dead{opacity:.35;cursor:default}
+.enemy-emoji{font-size:2.4rem;text-align:center}
+.enemy-name{text-align:center;font-weight:800}
+.enemy-info{font-size:.8rem;color:var(--muted)}
+.skill-button{text-align:left;min-height:85px;background:#263d5a}
+.skill-button strong{display:block;color:var(--gold)}
+.skill-button small{display:block;color:var(--muted);font-weight:400}
+.question-box{background:#263d5a;border-radius:14px;padding:16px;margin-top:12px}
+.question{font-size:clamp(1.25rem,4vw,1.8rem);font-weight:800;margin:12px 0}
+.feedback{min-height:30px;font-weight:700;margin-top:10px}
+.good{color:var(--green)}.bad{color:var(--red)}
+.tag{display:inline-block;padding:4px 9px;border-radius:20px;background:#405877;margin:3px;font-size:.85rem}
+#battleLog{background:#111d2e;border-radius:10px;padding:12px;min-height:65px;color:var(--muted);font-size:.9rem}
+.compare-buttons{display:flex;gap:12px;margin:12px 0}
+.compare-buttons button{flex:1;font-size:1.6rem;padding:15px}
+#securityMessage{border-color:#ff7777;color:#ffaaaa}
+@media(max-width:650px){
+  body{padding:8px}
+  .panel{padding:13px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<main>
+
+<section id="intro" class="panel">
+  <h1>⚔️ Desetinný krystal</h1>
+  <p>Starobylé království ovládly příšery. Jedinou nadějí je hrdina, který dokáže ovládnout sílu desetinných čísel.</p>
+  <p class="muted">Vyber si povolání, porážej nepřátele a vydej se za legendárním krystalem.</p>
+
+  <h2>Vyber si povolání</h2>
+  <div id="classList" class="grid"></div>
+
+  <div id="bardUnlock" class="panel hidden">
+    <h3>🔒 Tajné povolání</h3>
+    <p class="muted small">Zadej heslo pro odemknutí Barda.</p>
+    <div class="row">
+      <input id="bardPassword" type="password" placeholder="Heslo">
+      <button id="unlockBard">Odemknout</button>
+    </div>
+    <div id="bardMessage" class="feedback"></div>
+  </div>
+
+  <div class="row">
+    <label>Obtížnost
+      <select id="difficulty">
+        <option value="easy">Začátečník</option>
+        <option value="normal" selected>Dobrodruh</option>
+        <option value="hard">Hrdina</option>
+      </select>
+    </label>
+    <label>Délka výpravy
+      <select id="length">
+        <option value="5">Krátká – 5 oblastí</option>
+        <option value="8" selected>Normální – 8 oblastí</option>
+        <option value="12">Dlouhá – 12 oblastí</option>
+      </select>
+    </label>
+  </div>
+  <p id="classDescription" class="muted">Nejprve si vyber povolání.</p>
+  <button id="startGame" class="primary" disabled>Začít dobrodružství</button>
+</section>
+
+<div id="securityMessage" class="panel hidden">
+  ⚠️ Rozehraná hra byla ukončena, protože jsi opustil herní okno. Musíš začít znovu.
+</div>
+
+<section id="game" class="hidden">
+  <div class="panel">
+    <div class="row">
+      <div>
+        <h2 id="heroName">Hrdina</h2>
+        <span id="heroClass" class="tag"></span>
+        <span id="heroLevel" class="tag">Úroveň 1</span>
+      </div>
+      <div style="text-align:right">
+        <div class="muted small">Výprava</div>
+        <strong id="waveProgress">Oblast 1 / 8</strong>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>❤️ Životy</span><strong id="hpValue">100</strong></div>
+      <div class="stat"><span>⚔️ Útok</span><strong id="atkValue">10</strong></div>
+      <div class="stat"><span>🛡️ Armor</span><strong id="armorValue">8</strong></div>
+      <div class="stat"><span>⚡ Rychlost</span><strong id="speedValue">1.0</strong></div>
+      <div class="stat"><span>⭐ Zkušenosti</span><strong id="xpValue">0</strong></div>
+    </div>
+    <div class="muted small">Životy hrdiny</div>
+    <div class="bar hero-bar"><span id="heroBar"></span></div>
+    <div id="specialStatus" class="muted small"></div>
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <div>
+        <h2 id="areaTitle">Lesní stezka</h2>
+        <p class="muted small" id="areaDescription"></p>
+      </div>
+      <div style="text-align:right"><span class="tag" id="areaTag"></span></div>
+    </div>
+    <div id="enemyList" class="enemy-grid"></div>
+  </div>
+
+  <div class="panel">
+    <h2>⚔️ Tvoje schopnosti</h2>
+    <p class="muted small">Vyber schopnost a vyřeš příklad. Rychlejší správná odpověď zesílí útok. Po každé akci následuje automatická obrana.</p>
+    <div id="skillList" class="grid"></div>
+
+    <div id="questionBox" class="question-box hidden">
+      <span id="questionTag" class="tag">Úloha</span>
+      <div id="questionText" class="question"></div>
+      <div id="answerArea"></div>
+      <div id="timerText" class="muted small"></div>
+      <button id="answerButton" class="primary">Vyhodnotit</button>
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>📜 Průběh souboje</h3>
+    <div id="battleLog">Souboj ještě nezačal.</div>
+  </div>
+</section>
+
+<section id="ending" class="panel hidden">
+  <h1 id="endingTitle">Konec výpravy</h1>
+  <p id="endingText"></p>
+  <button id="returnButton" class="primary">Zpět na výběr postavy</button>
+</section>
+</main>
+
+<script>
+"use strict";
+
+const BARD_PASSWORD = "Nebinární_bizon_edison";
+
+const $ = id => document.getElementById(id);
+const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const pick = arr => arr[rand(0,arr.length-1)];
+
+const classes = {
+  warrior:{
+    name:"Válečník",emoji:"⚔️",role:"DPS",
+    description:"Silný bojovník s vysokým poškozením. Má méně životů a slabší obranu než tank.",
+    hp:105,atk:17,armor:6,speed:1.05,
+    skills:[
+      {id:"quick",name:"Rychlý sek",type:"damage",difficulty:"easy",power:9,target:"one",text:"Rychlý útok na jednoho nepřítele."},
+      {id:"heavy",name:"Drtivá rána",type:"damage",difficulty:"hard",power:25,target:"one",text:"Silný úder do jednoho nepřítele."},
+      {id:"multi",name:"Vířivý útok",type:"damage",difficulty:"medium",power:15,target:"all",text:"Zasáhne všechny nepřátele."},
+      {id:"ultimate",name:"Bojový pokřik",type:"buff",difficulty:"hard",text:"Zvýší poškození dalších dvou útoků.",cooldown:4,buff:"attack"}
+    ]
+  },
+  assassin:{
+    name:"Zabiják",emoji:"🗡️",role:"DPS",
+    description:"Extrémně rychlý útočník. Způsobuje velké poškození, ale má málo životů a slabý armor.",
+    hp:85,atk:16,armor:4,speed:1.4,
+    skills:[
+      {id:"quick",name:"Rychlé bodnutí",type:"damage",difficulty:"easy",power:8,target:"one",text:"Velmi rychlý útok."},
+      {id:"heavy",name:"Smrtící úder",type:"damage",difficulty:"hard",power:28,target:"one",text:"Velké poškození jednoho cíle."},
+      {id:"multi",name:"Trojitý výpad",type:"damage",difficulty:"medium",power:14,target:"all",text:"Rychlá série útoků."},
+      {id:"ultimate",name:"Stínový tanec",type:"buff",difficulty:"hard",text:"Zvýší sílu dalších dvou útoků.",cooldown:4,buff:"attack"}
+    ]
+  },
+  mage:{
+    name:"Mág",emoji:"🧙",role:"DPS",
+    description:"Nejsilnější ničivá magie. Má nízké životy a slabou obranu.",
+    hp:78,atk:19,armor:3,speed:1,
+    skills:[
+      {id:"quick",name:"Magická střela",type:"damage",difficulty:"easy",power:10,target:"one",text:"Základní magický útok."},
+      {id:"heavy",name:"Ohnivá koule",type:"damage",difficulty:"hard",power:31,target:"one",text:"Velmi silný zásah."},
+      {id:"multi",name:"Výbuch živlů",type:"damage",difficulty:"medium",power:17,target:"all",text:"Zasáhne všechny nepřátele."},
+      {id:"ultimate",name:"Přetížení many",type:"buff",difficulty:"hard",text:"Zvýší sílu dalších dvou kouzel.",cooldown:4,buff:"attack"}
+    ]
+  },
+  guardian:{
+    name:"Ochránce",emoji:"🛡️",role:"Tank",
+    description:"Odolný tank. Má nejvíce životů a vysoký armor, ale způsobuje méně poškození.",
+    hp:165,atk:10,armor:17,speed:.85,
+    skills:[
+      {id:"quick",name:"Úder štítem",type:"damage",difficulty:"easy",power:6,target:"one",text:"Rychlý úder štítem."},
+      {id:"heavy",name:"Mocný úder",type:"damage",difficulty:"hard",power:17,target:"one",text:"Silnější útok těžkou zbraní."},
+      {id:"multi",name:"Provokace",type:"damage",difficulty:"medium",power:9,target:"all",text:"Zasáhne všechny nepřátele."},
+      {id:"ultimate",name:"Železná vůle",type:"buff",difficulty:"hard",text:"Sníží poškození dalších dvou nepřátelských kol.",cooldown:4,buff:"defense"}
+    ]
+  },
+  bard:{
+    name:"Bard",emoji:"🎵",role:"DPS / Support",
+    description:"Všestranný hrdina. Hudbou posiluje útoky a obnovuje životy.",
+    hp:100,atk:15,armor:7,speed:1.1,
+    skills:[
+      {id:"quick",name:"Strunný úder",type:"damage",difficulty:"easy",power:8,target:"one",text:"Rychlý útok hudební energií."},
+      {id:"heavy",name:"Crescendo",type:"damage",difficulty:"hard",power:24,target:"one",text:"Silný hudební útok."},
+      {id:"multi",name:"Bouřlivý refrén",type:"damage",difficulty:"medium",power:15,target:"all",text:"Hudební vlna zasáhne všechny nepřátele."},
+      {id:"ultimate",name:"Hrdinská balada",type:"buff",difficulty:"hard",text:"Na tři kola posílí útoky a léčí.",cooldown:4,buff:"bard"}
+    ]
+  }
+};
+
+const creatures=[
+  {name:"Lesní sliz",emoji:"🟢",hp:38,atk:8,armor:3},
+  {name:"Jeskynní netopýr",emoji:"🦇",hp:34,atk:9,armor:2},
+  {name:"Kostlivec",emoji:"💀",hp:48,atk:10,armor:6},
+  {name:"Ohnivý skřet",emoji:"👹",hp:52,atk:11,armor:5},
+  {name:"Temný vlk",emoji:"🐺",hp:44,atk:12,armor:3},
+  {name:"Bažinný troll",emoji:"🧌",hp:68,atk:12,armor:9}
+];
+
+const bosses=[
+  {name:"Král bažin",emoji:"👑",hp:135,atk:16,armor:12},
+  {name:"Mrazivý obr",emoji:"🧊",hp:165,atk:19,armor:15},
+  {name:"Drak desetinných čísel",emoji:"🐉",hp:205,atk:22,armor:18}
+];
+
+let selectedClass=null;
+let bardUnlocked=false;
+let gameState=null;
+let wakeLock=null;
+let pendingExit=false;
+
+async function keepScreenOn(){
+  try{
+    if("wakeLock" in navigator){
+      if(wakeLock)return;
+      wakeLock=await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release",()=>{
+        wakeLock=null;
+      });
+    }
+  }catch(e){
+    wakeLock=null;
+  }
+}
+
+async function releaseScreenLock(){
+  try{
+    if(wakeLock){
+      await wakeLock.release();
+      wakeLock=null;
+    }
+  }catch(e){}
+}
+
+function abandonGame(){
+  if(!gameState)return;
+
+  gameState=null;
+  pendingExit=false;
+  releaseScreenLock();
+
+  $("game").classList.add("hidden");
+  $("ending").classList.add("hidden");
+  $("intro").classList.remove("hidden");
+  $("securityMessage").classList.remove("hidden");
+
+  selectedClass=null;
+  $("startGame").disabled=true;
+  $("classDescription").textContent="Nejprve si vyber povolání.";
+
+  document.querySelectorAll(".class-card").forEach(b=>{
+    b.classList.remove("selected");
+  });
+}
+
+function fmt(n){
+  return Number(n.toFixed(4)).toString().replace(".",",");
+}
+function norm(s){
+  return String(s).trim().replace(/\s/g,"").replace(",",".").replace("−","-");
+}
+
+function words(n){
+  const u=["nula","jedna","dvě","tři","čtyři","pět","šest","sedm","osm","devět"];
+  const t=["deset","jedenáct","dvanáct","třináct","čtrnáct","patnáct","šestnáct","sedmnáct","osmnáct","devatenáct"];
+  const d=["","","dvacet","třicet","čtyřicet","padesát","šedesát","sedmdesát","osmdesát","devadesát"];
+  if(n<10)return u[n];
+  if(n<20)return t[n-10];
+  return d[Math.floor(n/10)]+(n%10?" "+u[n%10]:"");
+}
+
+function decimalWords(value){
+  const total=Math.round(value*100);
+  const whole=Math.floor(total/100);
+  const fraction=total%100;
+  let wholeText;
+  if(whole===1)wholeText="jedna celá";
+  else if(whole>=2&&whole<=4)wholeText=words(whole)+" celé";
+  else wholeText=words(whole)+" celých";
+  const ending=fraction===1?"setina":fraction>=2&&fraction<=4?"setiny":"setin";
+  return wholeText+" "+words(fraction)+" "+ending;
+}
+
+function makeQuestion(skillDifficulty){
+  let tier=$("difficulty").value==="easy"?1:$("difficulty").value==="normal"?2:3;
+  if(skillDifficulty==="easy")tier--;
+  if(skillDifficulty==="hard")tier++;
+  tier=Math.max(1,Math.min(3,tier));
+
+  const type=pick(["compare","round","add","sub","words","mul","div"]);
+  const max=[15,60,150][tier-1];
+
+  if(type==="compare"){
+    const a=rand(10,max*100)/100;
+    const b=rand(10,max*100)/100;
+    const answer=a<b?"<":a>b?">":"=";
+    return {
+      category:"Porovnávání",kind:"sign",answer,solution:answer,
+      text:`Porovnej čísla: ${fmt(a)} a ${fmt(b)}`
+    };
+  }
+
+  if(type==="round"){
+    const places=pick([1,2]);
+    let n;
+    if(places===1){
+      let x=rand(101,999);
+      while(x%10===0)x=rand(101,999);
+      n=x/100;
+    }else{
+      let x=rand(1001,9999);
+      while(x%10===0)x=rand(1001,9999);
+      n=x/1000;
+    }
+    const scale=places===1?10:100;
+    const result=Math.round((n+Number.EPSILON)*scale)/scale;
+    return {
+      category:"Zaokrouhlování",kind:"number",answer:result,solution:fmt(result),
+      text:`Zaokrouhli číslo ${fmt(n)} na ${places===1?"desetiny":"setiny"}.`
+    };
+  }
+
+  if(type==="add"||type==="sub"){
+    let a=rand(100,max*100)/100;
+    let b=rand(100,max*100)/100;
+    if(type==="sub"&&b>a)[a,b]=[b,a];
+    const result=Number((type==="add"?a+b:a-b).toFixed(2));
+    return {
+      category:type==="add"?"Sčítání":"Odčítání",kind:"number",
+      answer:result,solution:fmt(result),
+      text:`Vypočítej: ${fmt(a)} ${type==="add"?"+":"−"} ${fmt(b)} = ?`
+    };
+  }
+
+  if(type==="words"){
+    const whole=rand(0,Math.min(99,max));
+    const fraction=rand(1,99);
+    const result=whole+fraction/100;
+    return {
+      category:"Zápis čísla",kind:"number",answer:result,
+      solution:fmt(result),
+      text:`Zapiš číslem: ${decimalWords(result)}.`
+    };
+  }
+
+  if(type==="mul"){
+    let a,b;
+    if(tier===1){a=rand(11,40)/10;b=rand(2,5)/10;}
+    else if(tier===2){a=rand(11,99)/10;b=rand(2,9)/10;}
+    else{a=rand(101,999)/100;b=rand(11,99)/100;}
+    const result=Number((a*b).toFixed(4));
+    return {
+      category:"Násobení",kind:"number",answer:result,
+      solution:fmt(result),
+      text:`Vypočítej: ${fmt(a)} × ${fmt(b)} = ?`
+    };
+  }
+
+  const divisor=rand(2,tier===1?5:tier===2?9:12);
+  const quotient=rand(101,tier===1?500:tier===2?1200:2500)/100;
+  const dividend=Number((divisor*quotient).toFixed(2));
+  return {
+    category:"Dělení",kind:"number",answer:quotient,
+    solution:fmt(quotient),
+    text:`Vypočítej: ${fmt(dividend)} : ${divisor} = ?`
+  };
+}
+
+function renderClasses(){
+  const list=$("classList");
+  list.innerHTML="";
+  ["warrior","assassin","mage","guardian"].forEach(id=>{
+    const c=classes[id];
+    const b=document.createElement("button");
+    b.className="class-card";
+    b.dataset.id=id;
+    b.innerHTML=`<span class="emoji">${c.emoji}</span><strong>${c.name}</strong>${c.role}<small>${c.description}</small>`;
+    b.onclick=()=>selectClass(id);
+    list.appendChild(b);
+  });
+
+  const secret=document.createElement("button");
+  secret.className="class-card secret-card";
+  secret.innerHTML=`<span class="emoji">🔒</span><strong>Tajné povolání</strong>???<small>Vyžaduje heslo.</small>`;
+  secret.onclick=()=>{
+    $("bardUnlock").classList.toggle("hidden");
+    $("bardPassword").focus();
+  };
+  list.appendChild(secret);
+}
+
+function selectClass(id){
+  selectedClass=id;
+  document.querySelectorAll(".class-card").forEach(b=>{
+    b.classList.toggle("selected",b.dataset.id===id);
+  });
+  const c=classes[id];
+  $("classDescription").textContent=
+    `${c.description} Životy: ${c.hp}, útok: ${c.atk}, armor: ${c.armor}, rychlost: ${c.speed}.`;
+  $("startGame").disabled=false;
+}
+
+function unlockBard(){
+  if($("bardPassword").value!==BARD_PASSWORD){
+    $("bardMessage").textContent="Heslo není správné.";
+    $("bardMessage").className="feedback bad";
+    return;
+  }
+  bardUnlocked=true;
+  const secret=$("classList").lastElementChild;
+  secret.className="class-card";
+  secret.dataset.id="bard";
+  secret.innerHTML=`<span class="emoji">🎵</span><strong>Bard</strong>DPS / Support<small>${classes.bard.description}</small>`;
+  secret.onclick=()=>selectClass("bard");
+  $("bardMessage").textContent="Bard odemčen!";
+  $("bardMessage").className="feedback good";
+  $("bardUnlock").classList.add("hidden");
+}
+
+function startGame(){
+  if(!selectedClass)return;
+
+  $("securityMessage").classList.add("hidden");
+  pendingExit=false;
+  keepScreenOn();
+
+  const c=classes[selectedClass];
+  gameState={
+    classId:selectedClass,
+    hero:{hp:c.hp,maxHp:c.hp,atk:c.atk,armor:c.armor,speed:c.speed},
+    level:1,xp:0,wave:1,totalWaves:Number($("length").value),
+    turn:1,enemies:[],targetIndex:0,currentSkill:null,
+    question:null,questionStart:0,phase:"player",locked:false,
+    cooldownReadyAt:0,
+    buffs:{attackTurns:0,defenseTurns:0,bardTurns:0}
+  };
+
+  $("intro").classList.add("hidden");
+  $("ending").classList.add("hidden");
+  $("game").classList.remove("hidden");
+  $("heroName").textContent="Hrdina";
+  $("heroClass").textContent=c.emoji+" "+c.name;
+  $("battleLog").textContent="Vstupuješ do první oblasti.";
+  spawnWave();
+  updateHud();
+  renderSkills();
+}
+
+function makeEnemy(base,scale,boss){
+  const diff=$("difficulty").value;
+  const mult=diff==="easy"?.8:diff==="hard"?1.2:1;
+  const hp=Math.round(base.hp*scale*mult);
+  return {
+    name:base.name,emoji:base.emoji,hp,maxHp:hp,
+    atk:Math.round(base.atk*scale*mult),
+    armor:Math.round(base.armor*scale),boss
+  };
+}
+
+function spawnWave(){
+  const s=gameState;
+  if(s.wave>s.totalWaves){
+    finishGame(true);
+    return;
+  }
+
+  s.enemies=[];
+  s.targetIndex=0;
+  s.phase="player";
+  s.locked=false;
+
+  // Boss je vždy ve 4. oblasti a zároveň vždy v poslední oblasti.
+  const isBoss=s.wave%4===0 || s.wave===s.totalWaves;
+
+  if(isBoss){
+    let bossIndex;
+
+    if(s.wave===s.totalWaves){
+      // Závěrečný boss je vždy Drak desetinných čísel.
+      bossIndex=2;
+    }else{
+      bossIndex=Math.min(Math.floor(s.wave/4)-1,1);
+    }
+
+    const base=bosses[bossIndex];
+    const scale=1+(s.wave-4)*.1;
+
+    $("areaTitle").textContent="⚠️ ZÁVĚREČNÝ BOSS: "+base.name;
+    $("areaTag").textContent="BOSS";
+    $("areaDescription").textContent=
+      s.wave===s.totalWaves
+      ?"Poslední překážka výpravy! Poraz závěrečného bosse a zachraň království."
+      :"Před tebou stojí mocný protivník!";
+
+    s.enemies.push(makeEnemy(base,scale,true));
+
+  }else{
+    const count=s.wave%3===0?3:2;
+    const scale=1+(s.wave-1)*.1;
+
+    $("areaTitle").textContent="Oblast "+s.wave;
+    $("areaTag").textContent="Běžná oblast";
+    $("areaDescription").textContent="Skupina nepřátel ti brání v cestě.";
+
+    for(let i=0;i<count;i++){
+      s.enemies.push(makeEnemy(pick(creatures),scale,false));
+    }
+  }
+
+  $("battleLog").textContent=isBoss
+    ?"Do cesty se ti postavil boss!"
+    :"Objevili se nepřátelé.";
+
+  $("questionBox").classList.add("hidden");
+  drawEnemies();
+  updateHud();
+  renderSkills();
+}
+
+function drawEnemies(){
+  const list=$("enemyList");
+  list.innerHTML="";
+
+  gameState.enemies.forEach((e,i)=>{
+    const dead=e.hp<=0;
+    const card=document.createElement("div");
+
+    card.className="enemy-card"+
+      (i===gameState.targetIndex&&!dead?" target":"")+
+      (dead?" dead":"");
+
+    card.innerHTML=`
+      <div class="enemy-emoji">${e.emoji}</div>
+      <div class="enemy-name">${e.name}</div>
+      <div class="muted small">${e.boss?"BOSS":"Nepřítel"}</div>
+      <div class="small">❤️ ${e.hp} / ${e.maxHp}</div>
+      <div class="bar"><span style="width:${Math.max(0,100*e.hp/e.maxHp)}%"></span></div>
+      <div class="enemy-info">⚔️ Útok: ${e.atk} · 🛡️ Armor: ${e.armor}</div>
+      <div class="enemy-info">${dead?"Poražen":i===gameState.targetIndex?"Vybraný cíl":"Klikni pro výběr"}</div>`;
+
+    if(!dead){
+      card.onclick=()=>{
+        if(gameState.locked||gameState.phase!=="player")return;
+        gameState.targetIndex=i;
+        drawEnemies();
+      };
+    }
+
+    list.appendChild(card);
+  });
+}
+
+function renderSkills(){
+  const c=classes[gameState.classId];
+  const list=$("skillList");
+  list.innerHTML="";
+
+  c.skills.forEach(skill=>{
+    const b=document.createElement("button");
+    b.className="skill-button";
+
+    const cooling=skill.cooldown&&gameState.turn<gameState.cooldownReadyAt;
+
+    b.innerHTML=`
+      <strong>${skill.name}</strong>
+      <small>${skill.text}</small>
+      <small>Obtížnost: ${
+        skill.difficulty==="easy"?"lehká":
+        skill.difficulty==="medium"?"střední":"těžká"
+      }${cooling?" · Nabíjí se":" · Připraveno"}</small>`;
+
+    b.disabled=gameState.locked||gameState.phase!=="player"||!!cooling;
+    b.onclick=()=>chooseSkill(skill);
+    list.appendChild(b);
+  });
+}
+
+function chooseSkill(skill){
+  const s=gameState;
+
+  if(s.locked||s.phase!=="player")return;
+  if(skill.cooldown&&s.turn<s.cooldownReadyAt)return;
+  if(skill.target==="one"&&s.enemies.every(e=>e.hp<=0))return;
+
+  if(skill.target==="one"&&
+    (!s.enemies[s.targetIndex]||s.enemies[s.targetIndex].hp<=0)){
+    s.targetIndex=s.enemies.findIndex(e=>e.hp>0);
+  }
+
+  s.currentSkill=skill;
+  s.question=makeQuestion(skill.difficulty);
+  s.phase="player";
+  s.locked=true;
+
+  showQuestion("⚔️ ÚTOK – "+skill.name,s.question,
+    "Vyřeš příklad a proveď svou akci.");
+}
+
+function showQuestion(title,q,message){
+  $("questionBox").classList.remove("hidden");
+  $("questionTag").textContent=title;
+  $("questionText").textContent=q.text;
+  $("answerArea").innerHTML="";
+
+  if(q.kind==="sign"){
+    const choices=document.createElement("div");
+    choices.className="compare-buttons";
+
+    ["<",">","="].forEach(sign=>{
+      const b=document.createElement("button");
+      b.textContent=sign;
+      b.onclick=()=>submitAnswer(sign);
+      choices.appendChild(b);
+    });
+
+    $("answerArea").appendChild(choices);
+    $("answerButton").classList.add("hidden");
+
+  }else{
+    const input=document.createElement("input");
+    input.id="answerInput";
+    input.type="text";
+    input.placeholder="Tvoje odpověď";
+    input.autocomplete="off";
+
+    $("answerArea").appendChild(input);
+    $("answerButton").classList.remove("hidden");
+
+    input.addEventListener("keydown",e=>{
+      if(e.key==="Enter")checkAnswer();
+    });
+
+    input.focus();
+  }
+
+  $("feedback").textContent=message;
+  $("feedback").className="feedback muted";
+  $("timerText").textContent=
+    "Můžeš si příklad vypočítat na papír. Čas ovlivňuje pouze bonus.";
+
+  gameState.questionStart=Date.now();
+}
+
+function submitAnswer(raw){
+  const s=gameState;
+  if(!s||!s.locked)return;
+
+  if(!String(raw).trim()){
+    $("feedback").textContent="Nejdřív napiš odpověď.";
+    return;
+  }
+
+  const elapsed=(Date.now()-s.questionStart)/1000;
+  const q=s.question;
+  let correct;
+
+  if(q.kind==="sign"){
+    correct=raw===q.answer;
+  }else{
+    const value=Number(norm(raw));
+    correct=Number.isFinite(value)&&Math.abs(value-q.answer)<.0002;
+  }
+
+  $("timerText").textContent="Čas řešení: "+elapsed.toFixed(1)+" s";
+
+  if(s.phase==="defense"){
+    resolveDefense(correct,elapsed);
+  }else{
+    resolveAction(correct,elapsed);
+  }
+}
+
+function checkAnswer(){
+  const input=$("answerInput");
+  if(input)submitAnswer(input.value);
+}
+
+// Časové bonusy: do 15, 30 a 60 sekund.
+function qualityFor(elapsed){
+  if(elapsed<=15)return 1.4;
+  if(elapsed<=30)return 1.25;
+  if(elapsed<=60)return 1.1;
+  return 1;
+}
+
+function resolveAction(correct,elapsed){
+  const s=gameState;
+  const skill=s.currentSkill;
+  let log="";
+
+  if(correct){
+    $("feedback").textContent="Správně!";
+    $("feedback").className="feedback good";
+
+    if(skill.type==="damage"){
+      log=playerAttack(skill,qualityFor(elapsed));
+    }else{
+      activateBuff(skill);
+      log="Aktivoval jsi dočasné vylepšení.";
+    }
+
+    gainXP(8);
+
+  }else{
+    $("feedback").textContent="Chyba! Správná odpověď: "+s.question.solution;
+    $("feedback").className="feedback bad";
+    log="Akce se nepovedla.";
+  }
+
+  $("battleLog").textContent=log;
+
+  if(s.enemies.every(e=>e.hp<=0)){
+    waveComplete();
+    return;
+  }
+
+  startDefenseQuestion();
+}
+
+function playerAttack(skill,quality){
+  const s=gameState;
+  const h=s.hero;
+  const b=s.buffs;
+
+  let multiplier=1;
+
+  if(b.attackTurns>0)multiplier*=1.4;
+  if(b.bardTurns>0)multiplier*=1.25;
+
+  const speedFactor=1+(h.speed-1)*.2;
+  const base=(h.atk*.85+skill.power)*quality*speedFactor*multiplier;
+
+  let log="";
+
+  const targets=skill.target==="all"
+    ?s.enemies.filter(e=>e.hp>0)
+    :[s.enemies[s.targetIndex]];
+
+  targets.forEach(e=>{
+    if(!e||e.hp<=0)return;
+
+    const damage=Math.max(
+      1,
+      Math.round(base*(skill.target==="all"?.55:1)*100/(100+e.armor*2.5))
+    );
+
+    e.hp=Math.max(0,e.hp-damage);
+    log+=`${e.name}: −${damage} HP. `;
+
+    if(e.hp===0){
+      log+="Nepřítel poražen! ";
+      gainXP(e.boss?25:8);
+    }
+  });
+
+  drawEnemies();
+  updateHud();
+
+  return log;
+}
+
+function activateBuff(skill){
+  const s=gameState;
+  const b=s.buffs;
+
+  s.cooldownReadyAt=s.turn+(skill.cooldown||4);
+
+  if(skill.buff==="attack")b.attackTurns=2;
+  if(skill.buff==="defense")b.defenseTurns=2;
+
+  if(skill.buff==="bard"){
+    b.bardTurns=3;
+    s.hero.hp=Math.min(s.hero.maxHp,s.hero.hp+15);
+  }
+
+  updateHud();
+  renderSkills();
+}
+
+// Automatická obrana.
+function startDefenseQuestion(){
+  const s=gameState;
+
+  s.phase="defense";
+  s.locked=true;
+  s.question=makeQuestion("medium");
+
+  showQuestion(
+    "🛡️ OBRANA – Nepřátelé útočí!",
+    s.question,
+    "Vypočítej příklad. Rychlejší správná odpověď sníží poškození."
+  );
+}
+
+function resolveDefense(correct,elapsed){
+  let multiplier=1;
+
+  if(correct){
+    if(elapsed<=15)multiplier=.4;
+    else if(elapsed<=30)multiplier=.55;
+    else if(elapsed<=60)multiplier=.7;
+    else multiplier=.85;
+
+    $("feedback").textContent=
+      "Úspěšná obrana! Omezil jsi nepřátelské poškození.";
+    $("feedback").className="feedback good";
+
+  }else{
+    $("feedback").textContent=
+      "Obrana se nepovedla! Správná odpověď: "+gameState.question.solution;
+    $("feedback").className="feedback bad";
+  }
+
+  gameState.locked=false;
+  enemyAttack(multiplier);
+
+  if(gameState.hero.hp<=0){
+    finishGame(false);
+    return;
+  }
+
+  gameState.turn++;
+  gameState.phase="player";
+
+  $("questionBox").classList.add("hidden");
+  drawEnemies();
+  updateHud();
+  renderSkills();
+}
+
+function enemyAttack(multiplier){
+  const s=gameState;
+  const h=s.hero;
+
+  let total=0;
+  let details=[];
+
+  s.enemies.filter(e=>e.hp>0).forEach(e=>{
+    let damage=Math.max(
+      1,
+      Math.round(e.atk*100/(100+h.armor*2.5)*multiplier)
+    );
+
+    if(s.buffs.defenseTurns>0){
+      damage=Math.max(1,Math.round(damage*.45));
+    }
+
+    h.hp=Math.max(0,h.hp-damage);
+    total+=damage;
+
+    details.push(`${e.name} způsobil ${damage} poškození.`);
+  });
+
+  if(s.buffs.defenseTurns>0)s.buffs.defenseTurns--;
+  if(s.buffs.attackTurns>0)s.buffs.attackTurns--;
+  if(s.buffs.bardTurns>0)s.buffs.bardTurns--;
+
+  $("battleLog").textContent=
+    details.join(" ")+" Celkem utržené poškození: "+total+".";
+
+  updateHud();
+}
+
+function gainXP(amount){
+  const s=gameState;
+  s.xp+=amount;
+
+  let leveled=false;
+
+  while(s.xp>=s.level*35){
+    s.xp-=s.level*35;
+    s.level++;
+    s.hero.maxHp+=12;
+    s.hero.atk+=2;
+    s.hero.armor+=1;
+
+    // Při dosažení nové úrovně se hrdina plně vyléčí.
+    s.hero.hp=s.hero.maxHp;
+    leveled=true;
+  }
+
+  if(leveled){
+    $("battleLog").textContent+=
+      " ✨ NOVÁ ÚROVEŇ! Životy byly plně obnoveny.";
+  }
+
+  updateHud();
+}
+
+function waveComplete(){
+  const s=gameState;
+
+  gainXP(12);
+
+  // Poslední oblast končí definitivním vítězstvím.
+  if(s.wave>=s.totalWaves){
+    finishGame(true);
+    return;
+  }
+
+  s.wave++;
+
+  // Malé zotavení mezi oblastmi.
+  s.hero.hp=Math.min(
+    s.hero.maxHp,
+    s.hero.hp+Math.ceil(s.hero.maxHp*.08)
+  );
+
+  s.cooldownReadyAt=0;
+  spawnWave();
+}
+
+function updateHud(){
+  if(!gameState)return;
+
+  const s=gameState;
+  const h=s.hero;
+
+  $("heroLevel").textContent="Úroveň "+s.level;
+  $("waveProgress").textContent=`Oblast ${s.wave} / ${s.totalWaves}`;
+  $("hpValue").textContent=`${h.hp} / ${h.maxHp}`;
+  $("atkValue").textContent=h.atk;
+  $("armorValue").textContent=h.armor;
+  $("speedValue").textContent=h.speed.toFixed(2);
+  $("xpValue").textContent=`${s.xp} / ${s.level*35}`;
+
+  $("heroBar").style.width=Math.max(0,100*h.hp/h.maxHp)+"%";
+
+  const status=[];
+
+  if(s.buffs.attackTurns>0){
+    status.push("⚔️ Posílení útoku: "+s.buffs.attackTurns+" kola");
+  }
+  if(s.buffs.defenseTurns>0){
+    status.push("🛡️ Posílená obrana: "+s.buffs.defenseTurns+" kola");
+  }
+  if(s.buffs.bardTurns>0){
+    status.push("🎵 Bardova balada: "+s.buffs.bardTurns+" kola");
+  }
+
+  $("specialStatus").textContent=
+    status.join(" · ")||"Žádná aktivní vylepšení.";
+}
+
+function finishGame(won){
+  releaseScreenLock();
+
+  $("game").classList.add("hidden");
+  $("ending").classList.remove("hidden");
+
+  $("endingTitle").textContent=won
+    ?"🏆 VÍTĚZSTVÍ! KRÁLOVSTVÍ JE ZACHRÁNĚNO!"
+    :"💀 Konec výpravy";
+
+  $("endingText").textContent=won
+    ?`Porazil jsi závěrečného bosse – Draka desetinných čísel! Dokončil jsi všech ${gameState.totalWaves} oblastí a dosáhl úrovně ${gameState.level}. Krystal je v bezpečí!`
+    :`Padl jsi v boji. Dosáhl jsi oblasti ${gameState.wave} a úrovně ${gameState.level}.`;
+}
+
+function returnToMenu(){
+  releaseScreenLock();
+
+  gameState=null;
+  selectedClass=null;
+  pendingExit=false;
+
+  $("ending").classList.add("hidden");
+  $("game").classList.add("hidden");
+  $("intro").classList.remove("hidden");
+  $("securityMessage").classList.add("hidden");
+
+  $("startGame").disabled=true;
+  $("classDescription").textContent="Nejprve si vyber povolání.";
+
+  document.querySelectorAll(".class-card").forEach(b=>{
+    b.classList.remove("selected");
+  });
+}
+
+// Ochrana proti opuštění herní stránky.
+// Wake Lock se pokusí zabránit zhasnutí displeje.
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="hidden"){
+    if(gameState){
+      pendingExit=true;
+    }
+  }else if(pendingExit&&gameState){
+    abandonGame();
+  }else if(gameState){
+    keepScreenOn();
+  }
+});
+
+window.addEventListener("pagehide",()=>{
+  if(gameState){
+    pendingExit=true;
+  }
+});
+
+window.addEventListener("pageshow",()=>{
+  if(gameState&&document.visibilityState==="visible"){
+    keepScreenOn();
+  }
+});
+
+$("unlockBard").onclick=unlockBard;
+$("startGame").onclick=startGame;
+$("answerButton").onclick=checkAnswer;
+$("returnButton").onclick=returnToMenu;
+
+renderClasses();
+</script>
+</body>
+</html>
