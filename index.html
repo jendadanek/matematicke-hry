@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#10243c">
+<title>Školní herna</title>
+
+<style>
+:root {
+  --navy: #10243c;
+  --blue: #1769aa;
+  --muted: #60758b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(150deg,#dceefa,#f4f7fb);
+  font-family: system-ui, sans-serif;
+  color: var(--navy);
+}
+
+header {
+  background: linear-gradient(120deg,#10243c,#1769aa);
+  color: white;
+  text-align: center;
+  padding: 42px 18px;
+}
+
+header .icon { font-size: 3rem; }
+
+h1 {
+  font-size: clamp(2rem,6vw,3rem);
+  margin: 5px 0;
+}
+
+header p { color: #d5e6f5; }
+
+main {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 18px 40px;
+}
+
+.intro {
+  text-align: center;
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+
+.games {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr));
+  gap: 22px;
+}
+
+.card {
+  background: white;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px #183b5a18;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 35px #183b5a25;
+}
+
+.art {
+  height: 155px;
+  display: grid;
+  place-items: center;
+  font-size: 4.5rem;
+}
+
+.math .art {
+  background: linear-gradient(145deg,#ccecf4,#7fc5df);
+}
+
+.info .art {
+  background: linear-gradient(145deg,#dce9ff,#a9c5f0);
+}
+
+.physics .art {
+  background: linear-gradient(145deg,#fff0c9,#f4cc75);
+}
+
+.history .art {
+  background: linear-gradient(145deg,#f4e4d2,#d5b38e);
+}
+
+.naval .art {
+  background: linear-gradient(145deg,#ccecf4,#7fc5df);
+}
+
+.content { padding: 21px; }
+
+h2 {
+  font-size: 1.3rem;
+  margin: 0 0 10px;
+}
+
+.content p {
+  color: var(--muted);
+  line-height: 1.55;
+  min-height: 70px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: .76rem;
+  font-weight: bold;
+  color: #12663b;
+  background: #e2f5e9;
+  padding: 5px 10px;
+  border-radius: 99px;
+  margin-bottom: 12px;
+}
+
+.coming .badge {
+  color: #52677b;
+  background: #e9eff4;
+}
+
+.play {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  background: var(--blue);
+  color: white;
+  padding: 13px;
+  border-radius: 11px;
+  font-weight: bold;
+  margin-top: 18px;
+}
+
+.play:hover { filter: brightness(.9); }
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  padding: 15px 15px 30px;
+  font-size: .9rem;
+}
+
+@media(max-width:600px) {
+  header { padding: 32px 15px; }
+  main { margin-top: 20px; }
+  .games { gap: 17px; }
+  .content p { min-height: auto; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="icon">🎮</div>
+  <h1>Školní herna</h1>
+  <p>Procvičování může být zábava!</p>
+</header>
+
+<main>
+
+<p class="intro">
+Vyber si předmět a pusť se do toho.
+</p>
+
+<section class="games">
+
+  <!-- MATEMATIKA -->
+  <article class="card math">
+    <div class="art">➗</div>
+    <div class="content">
+      <span class="badge">Připravujeme</span>
+      <h2>Matematika</h2>
+      <p>
+        Počítání, desetinná čísla, zlomky,
+        rovnice a matematické úlohy.
+      </p>
+    </div>
+  </article>
+
+  <!-- INFORMATIKA -->
+  <article class="card info">
+    <div class="art">💻</div>
+    <div class="content">
+      <span class="badge">Připravujeme</span>
+      <h2>Informatika</h2>
+      <p>
+        Logické úlohy, programování,
+        digitální technologie a informatické výzvy.
+      </p>
+    </div>
+  </article>
+
+  <!-- FYZIKA -->
+  <article class="card physics">
+    <div class="art">⚡</div>
+    <div class="content">
+      <span class="badge">Připravujeme</span>
+      <h2>Fyzika</h2>
+      <p>
+        Fyzikální zákony, jednotky,
+        výpočty, pokusy a zajímavosti.
+      </p>
+    </div>
+  </article>
+
+  <!-- DĚJEPIS -->
+  <article class="card history">
+    <div class="art">🏰</div>
+    <div class="content">
+      <span class="badge">Připravujeme</span>
+      <h2>Dějepis</h2>
+      <p>
+        Historické události, osobnosti,
+        časové osy a historické kvízy.
+      </p>
+    </div>
+  </article>
+
+  <!-- NÁMOŘNÍ BITVA -->
+  <article class="card naval">
+    <div class="art">⚓🚢</div>
+    <div class="content">
+      <span class="badge">Dostupná hra</span>
+      <h2>Námořní matematická bitva</h2>
+      <p>
+        Násobení a dělení. Potop nepřátelskou
+        flotilu pomocí správných matematických výsledků!
+      </p>
+      <a class="play" href="./namorni-bitva/">
+        Spustit hru →
+      </a>
+    </div>
+  </article>
+
+</section>
+
+</main>
+
+<footer>
+  Školní herna · Vzdělávání hrou
+</footer>
+
+</body>
+</html>
