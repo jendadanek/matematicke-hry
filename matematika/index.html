@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matematika – Školní herna</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+header {
+    background: linear-gradient(135deg, #2563eb, #0d9488);
+    color: white;
+    text-align: center;
+    padding: 45px 20px;
+}
+
+header h1 {
+    font-size: 38px;
+    margin: 0 0 12px;
+}
+
+header p {
+    font-size: 17px;
+    margin: 0;
+}
+
+main {
+    max-width: 1000px;
+    margin: 35px auto;
+    padding: 0 20px;
+}
+
+.back {
+    display: inline-block;
+    margin-bottom: 25px;
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 22px;
+}
+
+.card {
+    background: white;
+    border-radius: 18px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.emoji {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.card h2 {
+    margin: 0 0 10px;
+    font-size: 23px;
+}
+
+.card p {
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.game-link {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 11px 18px;
+    background: #2563eb;
+    color: white;
+    text-decoration: none;
+    border-radius: 9px;
+    font-weight: bold;
+}
+
+.game-link:hover {
+    background: #1d4ed8;
+}
+
+.soon {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 8px 13px;
+    background: #e2e8f0;
+    color: #64748b;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+footer {
+    text-align: center;
+    padding: 25px;
+    color: #64748b;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🔢 Matematika</h1>
+    <p>Počítej, přemýšlej a uč se hrou!</p>
+</header>
+
+<main>
+
+    <a class="back" href="../">← Zpět do Školní herny</a>
+
+    <div class="grid">
+
+        <section class="card">
+            <div class="emoji">⚓</div>
+            <h2>Námořní matematická bitva</h2>
+            <p>
+                Najdi soupeřovy lodě a procvič si matematiku.
+                Čeká tě námořní dobrodružství!
+            </p>
+            <a class="game-link" href="../namorni-bitva/">Spustit hru →</a>
+        </section>
+
+        <section class="card">
+            <div class="emoji">🎯</div>
+            <h2>Další matematické hry</h2>
+            <p>
+                Další procvičování a matematická dobrodružství
+                budeme postupně přidávat.
+            </p>
+            <span class="soon">Připravujeme</span>
+        </section>
+
+    </div>
+
+</main>
+
+<footer>
+    Školní herna · Matematika
+</footer>
+
+</body>
+</html>
