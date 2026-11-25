@@ -16,8 +16,7 @@
     --muted: #a8b5cc;
     --blue: #60a5fa;
     --cyan: #22d3ee;
-    --purple: #a78bfa;
-    --green: #4ade80;
+    --purple: #c084fc;
     --border: rgba(255,255,255,0.09);
 }
 
@@ -43,7 +42,11 @@ body {
 header {
     padding: 55px 20px 50px;
     text-align: center;
-    background: linear-gradient(135deg, rgba(37,99,235,0.25), rgba(13,148,136,0.19));
+    background: linear-gradient(
+        135deg,
+        rgba(37,99,235,0.25),
+        rgba(13,148,136,0.19)
+    );
     border-bottom: 1px solid var(--border);
 }
 
@@ -132,7 +135,10 @@ main {
     border: 1px solid var(--border);
     border-radius: 19px;
     box-shadow: 0 12px 30px rgba(0,0,0,0.17);
-    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    transition:
+        transform 0.25s,
+        border-color 0.25s,
+        box-shadow 0.25s;
 }
 
 .card::before {
@@ -358,7 +364,55 @@ footer {
     font-size: 13px;
 }
 
+/* TISKOVÁ ŠABLONA JE NA BĚŽNÉ STRÁNCE SKRYTÁ */
+#printPage {
+    display: none !important;
+}
+
+/* ZOBRAZENÍ POUZE PŘI TISKU */
+@media print {
+
+    @page {
+        margin: 15mm;
+    }
+
+    body {
+        background: white !important;
+        color: black !important;
+    }
+
+    header,
+    main,
+    footer {
+        display: none !important;
+    }
+
+    body.printing-qr #printPage {
+        display: flex !important;
+        min-height: 90vh;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+        color: black;
+        font-family: Arial, sans-serif;
+    }
+
+    #printPage h1 {
+        margin-bottom: 25px;
+        font-size: 25px;
+    }
+
+    #printPage img {
+        display: block;
+        width: 75mm;
+        height: 75mm;
+        object-fit: contain;
+    }
+}
+
 @media (max-width: 650px) {
+
     header {
         padding: 43px 17px;
     }
@@ -382,45 +436,6 @@ footer {
         width: 185px;
     }
 }
-
-@media print {
-    body {
-        background: white;
-        color: black;
-    }
-
-    header, main, footer {
-        display: none !important;
-    }
-
-    body.printing-qr .print-page {
-        display: flex !important;
-    }
-
-    .print-page {
-        display: none;
-        min-height: 95vh;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        color: black;
-        text-align: center;
-        font-family: Arial, sans-serif;
-    }
-
-    .print-page img {
-        width: 280px;
-        height: 280px;
-    }
-
-    .print-page h1 {
-        font-size: 27px;
-    }
-
-    .print-page p {
-        font-size: 15px;
-    }
-}
 </style>
 </head>
 
@@ -428,7 +443,9 @@ footer {
 
 <header>
     <div class="header-label">Školní herna · Herní zóna</div>
+
     <h1>🔢 <span>Matematika</span></h1>
+
     <p>
         Počítej, přemýšlej, objevuj.
         Procvičuj matematiku prostřednictvím her a dobrodružství!
@@ -449,10 +466,13 @@ footer {
 
     <div class="grid">
 
-        <!-- NÁMOŘNÍ BITVA -->
+        <!-- NÁMOŘNÍ MATEMATICKÁ BITVA -->
         <section class="card" style="--accent:#60a5fa;">
+
             <div class="card-icon">⚓</div>
+
             <h3>Námořní matematická bitva</h3>
+
             <p>
                 Najdi soupeřovy lodě a procvič si matematiku.
                 Čeká tě námořní dobrodružství plné úkolů,
@@ -464,25 +484,33 @@ footer {
             </a>
 
             <div class="qr-area">
+
                 <div class="qr-image">
                     <img
                         src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https%3A%2F%2Fjendadanek.github.io%2Fmatematicke-hry%2Fnamorni-bitva%2F"
                         alt="QR kód Námořní matematické bitvy">
                 </div>
+
                 <div class="qr-info">
                     <strong>📱 QR kód hry</strong>
                     <span>Naskenuj a otevři přímo námořní bitvu.</span>
-                    <button class="print-button" onclick="printQR('https://jendadanek.github.io/matematicke-hry/namorni-bitva/', 'NÁMOŘNÍ MATEMATICKÁ BITVA')">
+
+                    <button class="print-button"
+                        onclick="printQR('https://jendadanek.github.io/matematicke-hry/namorni-bitva/', 'NÁMOŘNÍ MATEMATICKÁ BITVA')">
                         Vytisknout QR
                     </button>
                 </div>
+
             </div>
         </section>
 
         <!-- DESETINNÝ KRYSTAL -->
         <section class="card" style="--accent:#c084fc;">
+
             <div class="card-icon">💎</div>
+
             <h3>Desetinný krystal – RPG</h3>
+
             <p>
                 Vydej se na dobrodružnou výpravu, bojuj s příšerami
                 a procvičuj desetinná čísla. Vyber si povolání,
@@ -494,25 +522,33 @@ footer {
             </a>
 
             <div class="qr-area">
+
                 <div class="qr-image">
                     <img
                         src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https%3A%2F%2Fjendadanek.github.io%2Fmatematicke-hry%2Fmatematika%2Fdesetinny-krystal%2F"
                         alt="QR kód Desetinného krystalu">
                 </div>
+
                 <div class="qr-info">
                     <strong>📱 QR kód hry</strong>
                     <span>Naskenuj a vstup do RPG dobrodružství.</span>
-                    <button class="print-button" onclick="printQR('https://jendadanek.github.io/matematicke-hry/matematika/desetinny-krystal/', 'DESETINNÝ KRYSTAL – RPG')">
+
+                    <button class="print-button"
+                        onclick="printQR('https://jendadanek.github.io/matematicke-hry/matematika/desetinny-krystal/', 'DESETINNÝ KRYSTAL – RPG')">
                         Vytisknout QR
                     </button>
                 </div>
+
             </div>
         </section>
 
         <!-- GALAXIE GEOMETRIE -->
         <section class="card" style="--accent:#22d3ee;">
+
             <div class="card-icon">🚀</div>
+
             <h3>GALAXIE GEOMETRIE</h3>
+
             <p>
                 Vydej se do vesmíru, nič nepřátelské štíty
                 a zachraň galaxii! Procvič si body, přímky,
@@ -524,30 +560,40 @@ footer {
             </a>
 
             <div class="qr-area">
+
                 <div class="qr-image">
                     <img
                         src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https%3A%2F%2Fjendadanek.github.io%2Fmatematicke-hry%2Fmatematika%2Fgalaxie-geometrie%2F"
                         alt="QR kód GALAXIE GEOMETRIE">
                 </div>
+
                 <div class="qr-info">
                     <strong>📱 QR kód hry</strong>
                     <span>Naskenuj a vydej se do geometrické galaxie.</span>
-                    <button class="print-button" onclick="printQR('https://jendadanek.github.io/matematicke-hry/matematika/galaxie-geometrie/', 'GALAXIE GEOMETRIE')">
+
+                    <button class="print-button"
+                        onclick="printQR('https://jendadanek.github.io/matematicke-hry/matematika/galaxie-geometrie/', 'GALAXIE GEOMETRIE')">
                         Vytisknout QR
                     </button>
                 </div>
+
             </div>
         </section>
 
         <!-- DALŠÍ HRY -->
         <section class="more-card">
+
             <div class="card-icon">🎯</div>
+
             <h3>Další matematické hry</h3>
+
             <p>
                 Další procvičování, matematické výzvy
                 a dobrodružství budeme postupně přidávat.
             </p>
+
             <span class="soon">Další hry připravujeme</span>
+
         </section>
 
     </div>
@@ -556,26 +602,34 @@ footer {
     <section class="qr-section">
 
         <div>
+
             <h2>📱 Vstup do matematické herny</h2>
+
             <p>
                 Chceš si vybrat z nabídky všech matematických her?
                 Naskenuj společný QR kód a otevři tuto stránku
                 přímo na mobilu nebo tabletu.
             </p>
+
             <div class="qr-hint">
                 Naskenuj → Otevři matematiku → Vyber si hru
             </div>
-            <button class="print-button" onclick="printQR('https://jendadanek.github.io/matematicke-hry/matematika/', 'MATEMATIKA – ŠKOLNÍ HERNA')">
+
+            <button class="print-button"
+                onclick="printQR('https://jendadanek.github.io/matematicke-hry/matematika/', 'MATEMATIKA – ŠKOLNÍ HERNA')">
                 🖨️ Vytisknout společný QR kód
             </button>
+
         </div>
 
         <div class="main-qr">
+
             <img
                 src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fjendadanek.github.io%2Fmatematicke-hry%2Fmatematika%2F"
-                alt="Společný QR kód matematické herny"
-            >
+                alt="Společný QR kód matematické herny">
+
             <span>MATEMATIKA · ŠKOLNÍ HERNA</span>
+
         </div>
 
     </section>
@@ -586,15 +640,15 @@ footer {
     Školní herna · Matematika · Učíme se hrou
 </footer>
 
-<div class="print-page" id="printPage">
+<!-- SKRYTÁ TISKOVÁ ŠABLONA: NA WEBU SE NIKDY NEZOBRAZÍ -->
+<div id="printPage">
     <h1 id="printTitle"></h1>
-    <img id="printImage" src="" alt="QR kód pro otevření hry">
-    <p>Naskenuj QR kód a otevři hru.</p>
-    <p>Školní herna · Matematika</p>
+    <img id="printImage" src="" alt="QR kód">
 </div>
 
 <script>
 function printQR(url, title) {
+
     const imageUrl =
         "https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=" +
         encodeURIComponent(url);
@@ -603,24 +657,30 @@ function printQR(url, title) {
     const heading = document.getElementById("printTitle");
 
     heading.textContent = title;
-    image.src = imageUrl;
 
     document.body.classList.add("printing-qr");
 
     image.onload = function() {
         window.print();
-        document.body.classList.remove("printing-qr");
     };
 
     image.onerror = function() {
         document.body.classList.remove("printing-qr");
+
         alert("QR kód se nepodařilo načíst. Zkontroluj připojení k internetu.");
     };
+
+    image.src = imageUrl;
 }
+
+window.addEventListener("afterprint", function() {
+    document.body.classList.remove("printing-qr");
+});
 </script>
 
 </body>
 </html>
+
 
 
 
