@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GALAXIE GEOMETRIE – SEKTOR 01</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#050816;color:#e5f3ff;font-family:Arial,sans-serif;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:12px}
+.game{width:100%;max-width:1000px;text-align:center}
+h1{margin:5px 0;color:#67e8f9;font-size:clamp(23px,4vw,34px);text-shadow:0 0 15px #0891b2}
+.subtitle{color:#94a3b8;margin-bottom:12px;font-size:13px;letter-spacing:2px}
+.hud{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:10px;background:#111c33;border:1px solid #1e4970;border-radius:10px 10px 0 0;font-weight:bold;font-size:14px}
+.hud span{color:#67e8f9}
+.canvas-wrap{position:relative;background:#020617;border:2px solid #164e75;overflow:hidden;box-shadow:0 0 25px #07598566}
+canvas{display:block;width:100%;height:auto;background:#020617}
+.overlay{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:#020617dd;padding:15px;z-index:5}
+.panel{width:min(470px,100%);background:#111c33;border:2px solid #22d3ee;border-radius:15px;padding:22px;box-shadow:0 0 30px #0891b255}
+.panel h2{color:#67e8f9;margin-top:0}
+.panel p{line-height:1.5;color:#cbd5e1}
+button{background:linear-gradient(135deg,#0891b2,#2563eb);border:0;color:white;font-weight:bold;padding:12px 20px;border-radius:8px;cursor:pointer;font-size:15px;margin:5px}
+button:hover{filter:brightness(1.2)}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
+.answers button{min-height:52px;margin:0;background:#1e3a5f;border:1px solid #38bdf8}
+.answers button:hover{background:#075985}
+.hidden{display:none!important}
+.question-text{font-size:19px;font-weight:bold;color:white;margin:15px 0}
+.feedback{min-height:25px;font-weight:bold;margin-top:12px}
+.controls{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:10px;background:#111c33;border:1px solid #1e4970;border-radius:0 0 10px 10px}
+.control-info{color:#94a3b8;font-size:12px;align-self:center}
+.touch-controls{display:none;justify-content:space-between;align-items:center;gap:15px;margin-top:10px}
+.touch-group{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(2,44px);gap:4px}
+.touch-controls button{padding:5px;margin:0;font-size:20px;touch-action:none;user-select:none}
+.touch-group .up{grid-column:2;grid-row:1}
+.touch-group .left{grid-column:1;grid-row:2}
+.touch-group .down{grid-column:2;grid-row:2}
+.touch-group .right{grid-column:3;grid-row:2}
+.touch-actions{display:flex;gap:8px}
+.touch-actions button{min-width:65px;font-size:13px}
+@media(max-width:700px){.touch-controls{display:flex}.control-info{display:none}.hud{font-size:12px}}
+</style>
+</head>
+<body>
+<div class="game">
+<h1>GALAXIE GEOMETRIE</h1>
+<div class="subtitle">SEKTOR 01 – ZÁCHRANA GALAKTICKÉ SÍTĚ</div>
+
+<div class="hud">
+<div>LEVEL: <span id="level">1</span></div>
+<div>ŽIVOTY: <span id="lives">15</span></div>
+<div>SKÓRE: <span id="score">0</span></div>
+<div>ZNIČENO: <span id="destroyed">0/16</span></div>
+<div>ZBRAŇ: <span id="weapon">Základní laser</span></div>
+<div>BOMBA: <span id="bomb">PŘIPRAVENA</span></div>
+</div>
+
+<div class="canvas-wrap">
+<canvas id="game" width="960" height="640"></canvas>
+
+<div class="overlay" id="startScreen">
+<div class="panel">
+<h2>GALAXIE GEOMETRIE</h2>
+<p>Vesmírná obranná jednotka potřebuje tvoji pomoc.</p>
+<p>Prostřílej se pěti úrovněmi, odpovídej na geometrické otázky a znič závěrečného bosse.</p>
+<p><b>Ovládání:</b><br>Šipky nebo WASD – pohyb<br>Mezerník – střelba<br>SHIFT – energetická bomba</p>
+<p>Za každý level získáš silnější zbraň!</p>
+<button onclick="startGame()">ZAHÁJIT MISI</button>
+</div>
+</div>
+
+<div class="overlay hidden" id="questionScreen">
+<div class="panel">
+<h2>GEOMETRICKÁ KONTROLA</h2>
+<p>Štít nepřítele blokuje tvoji střelbu. Vyřeš úlohu a deaktivuj ho!</p>
+<div class="question-text" id="questionText"></div>
+<div class="answers" id="answers"></div>
+<div class="feedback" id="feedback"></div>
+</div>
+</div>
+
+<div class="overlay hidden" id="endScreen">
+<div class="panel">
+<h2 id="endTitle">KONEC MISE</h2>
+<p id="endText"></p>
+<button onclick="restartGame()">HRÁT ZNOVU</button>
+</div>
+</div>
+
+<div class="overlay hidden" id="levelScreen">
+<div class="panel">
+<h2 id="levelTitle">LEVEL DOKONČEN</h2>
+<p id="levelText"></p>
+<button onclick="nextLevel()">POKRAČOVAT</button>
+</div>
+</div>
+</div>
+
+<div class="controls">
+<div class="control-info">ŠIPKY / WASD = POHYB | MEZERNÍK = STŘELBA | SHIFT = BOMBA</div>
+<div class="control-info">Nejlepší skóre: <span id="best">0</span></div>
+</div>
+
+<div class="touch-controls">
+<div class="touch-group">
+<button class="up" data-key="ArrowUp">▲</button>
+<button class="left" data-key="ArrowLeft">◀</button>
+<button class="down" data-key="ArrowDown">▼</button>
+<button class="right" data-key="ArrowRight">▶</button>
+</div>
+<div class="touch-actions">
+<button id="touchShoot">PALBA</button>
+<button id="touchBomb">BOMBA</button>
+</div>
+</div>
+</div>
+
+<script>
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+const W=canvas.width,H=canvas.height;
+const $=id=>document.getElementById(id);
+
+let gameRunning=false,gamePaused=false;
+let level=1,score=0,lives=15,destroyed=0;
+let bombReady=true,questionTarget=null,questionData=null;
+let spawnQueue=[],spawnTimer=0;
+const ENEMIES_PER_LEVEL=16;
+let lastTime=0,shake=0,stars=[],particles=[];
+let bullets=[],enemyBullets=[],enemies=[],boss=null;
+let keys={},shootTimer=0,levelTransition=false;
+let rafStarted=false;
+
+const WEAPONS=["","Základní laser","Dvojitý laser","Trojitá palba","Plazmová salva","Těžké plazmové kanóny"];
+const WEAPON_COLORS=["","#67e8f9","#38bdf8","#a78bfa","#f472b6","#fbbf24"];
+
+const FIRE_INTERVALS={
+ 1:250,
+ 2:195,
+ 3:155,
+ 4:115
+};
+
+const PLAYER_SPEED=5.2;
+
+const player={
+ x:W/2,y:H-85,speed:PLAYER_SPEED,radius:19,invulnerable:0
+};
+
+function createStars(){
+ stars=[];
+ for(let i=0;i<120;i++){
+  stars.push({
+   x:Math.random()*W,y:Math.random()*H,
+   size:Math.random()*2+0.5,
+   speed:Math.random()*1.8+0.3,
+   alpha:Math.random()*0.7+0.2
+  });
+ }
+}
+createStars();
+
+function updateHUD(){
+ $("level").textContent=level;
+ $("lives").textContent=lives;
+ $("score").textContent=score;
+ $("destroyed").textContent=level===5?"BOSS":destroyed+"/"+ENEMIES_PER_LEVEL;
+ $("weapon").textContent=WEAPONS[level];
+ $("bomb").textContent=bombReady?"PŘIPRAVENA":"NABÍJÍ SE";
+ $("best").textContent=localStorage.getItem("galaxieBest")||0;
+}
+
+function saveBest(){
+ const old=Number(localStorage.getItem("galaxieBest")||0);
+ if(score>old)localStorage.setItem("galaxieBest",score);
+ updateHUD();
+}
+
+function startGame(){
+ $("startScreen").classList.add("hidden");
+ restartGame();
+}
+
+function restartGame(){
+ level=1;score=0;lives=15;destroyed=0;
+ bombReady=true;player.x=W/2;player.y=H-85;
+ player.invulnerable=0;
+ bullets=[];enemyBullets=[];enemies=[];particles=[];
+ boss=null;questionTarget=null;gamePaused=false;
+ levelTransition=false;shootTimer=0;
+ keys={};
+ $("endScreen").classList.add("hidden");
+ $("levelScreen").classList.add("hidden");
+ $("questionScreen").classList.add("hidden");
+ gameRunning=true;
+ startLevel();
+ lastTime=performance.now();
+ if(!rafStarted){rafStarted=true;requestAnimationFrame(loop);}
+}
+
+function startLevel(){
+ destroyed=0;enemies=[];bullets=[];enemyBullets=[];boss=null;
+ spawnQueue=[];spawnTimer=45;
+ bombReady=true;levelTransition=false;
+ // Na začátku každého levelu se doplní všech 15 životů.
+ lives=15;
+ player.x=W/2;player.y=H-85;player.invulnerable=90;
+ if(level===5)createBoss();
+ else for(let i=0;i<ENEMIES_PER_LEVEL;i++)spawnQueue.push(i);
+ updateHUD();
+}
+
+/* Nepřátelé přilétají postupně a jsou rozprostřeni po celé šířce arény. */
+function createEnemy(index){
+ let type="circle";
+ if(level>=3&&index>=6)type="triangle";
+ if(level>=4&&index>=11)type="square";
+
+ const columns=[65,184,303,422,538,657,776,895];
+ const column=index%columns.length;
+ const x=columns[column]+(Math.random()*30-15);
+ const y=-55-(Math.random()*35);
+
+ let hp=type==="square"?3:type==="triangle"?2:1;
+
+ const baseSpeed={
+  1:0.58,
+  2:0.68,
+  3:0.82,
+  4:0.92
+ }[level]||0.7;
+
+ enemies.push({
+  x,y,type,hp,maxHp:hp,
+  shield:level>=2,
+  radius:type==="square"?24:21,
+  speed:baseSpeed+(type==="triangle"?0.22:type==="square"?-0.12:0),
+  shootTimer:100+Math.random()*100,
+  phase:Math.random()*6,
+  flash:0
+ });
+}
+
+function createBoss(){
+ boss={
+  x:W/2,y:125,hp:100,maxHp:100,
+  shield:true,radius:75,direction:1,
+  shootTimer:85,phase:0,attack:0
+ };
+}
+
+function nextLevel(){
+ $("levelScreen").classList.add("hidden");
+ level++;
+ if(level>5){winGame();return;}
+ startLevel();
+ gamePaused=false;
+ lastTime=performance.now();
+}
+
+function levelComplete(){
+ if(levelTransition)return;
+ levelTransition=true;gamePaused=true;
+ saveBest();
+ const nextWeapon=level<5?WEAPONS[level+1]:"Vítězství";
+ $("levelTitle").textContent="LEVEL "+level+" DOKONČEN!";
+ $("levelText").innerHTML=
+ "Výborně! Nepřátelé byli zničeni.<br><br>"+
+ "Získáváš nové vylepšení zbraní:<br><b>"+nextWeapon+
+ "</b><br><br>Tvoje stíhačka je připravena na další výzvu.";
+ $("levelScreen").classList.remove("hidden");
+}
+
+function winGame(){
+ gameRunning=false;gamePaused=true;saveBest();
+ $("endTitle").textContent="GALAXIE ZACHRÁNĚNA!";
+ $("endText").innerHTML=
+ "Porazil jsi závěrečného bosse a zachránil galaktickou síť!<br><br>"+
+ "Konečné skóre: <b>"+score+"</b><br>"+
+ "Zbývající životy: <b>"+lives+"</b>";
+ $("endScreen").classList.remove("hidden");
+}
+
+function gameOver(){
+ gameRunning=false;gamePaused=true;saveBest();
+ $("endTitle").textContent="MISE SELHALA";
+ $("endText").innerHTML=
+ "Nepřátelské síly ovládly sektor.<br><br>"+
+ "Dosažený level: <b>"+level+"</b><br>Skóre: <b>"+score+"</b>";
+ $("endScreen").classList.remove("hidden");
+}
+
+function damagePlayer(){
+ if(player.invulnerable>0||!gameRunning||gamePaused)return;
+ lives-=1;
+ player.invulnerable=75;
+ shake=12;
+ createExplosion(player.x,player.y,"#38bdf8",25);
+ if(lives<=0){lives=0;updateHUD();gameOver();}
+ else updateHUD();
+}
+
+function createExplosion(x,y,color,count=14){
+ for(let i=0;i<count;i++){
+  const a=Math.random()*Math.PI*2;
+  const speed=Math.random()*4+1;
+  particles.push({
+   x,y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,
+   life:25+Math.random()*25,maxLife:50,
+   size:Math.random()*4+2,color
+  });
+ }
+}
+
+function drawBackground(){
+ ctx.fillStyle="#020617";ctx.fillRect(0,0,W,H);
+ for(const s of stars){
+  ctx.globalAlpha=s.alpha;ctx.fillStyle="#dbeafe";
+  ctx.fillRect(s.x,s.y,s.size,s.size);
+ }
+ ctx.globalAlpha=1;
+}
+
+function updateStars(dt){
+ for(const s of stars){
+  s.y+=s.speed*dt;
+  if(s.y>H){s.y=0;s.x=Math.random()*W;}
+ }
+}
+
+function drawPlayer(){
+ if(player.invulnerable>0&&Math.floor(player.invulnerable/5)%2===0)return;
+ const color=WEAPON_COLORS[level];
+ ctx.save();ctx.translate(player.x,player.y);
+
+ ctx.shadowBlur=20;ctx.shadowColor="#38bdf8";
+ ctx.fillStyle="#0ea5e9";
+ ctx.beginPath();ctx.moveTo(-8,17);ctx.lineTo(0,37+Math.random()*8);
+ ctx.lineTo(8,17);ctx.closePath();ctx.fill();
+
+ ctx.shadowBlur=14;ctx.shadowColor=color;
+ ctx.fillStyle="#1d4ed8";
+ ctx.beginPath();ctx.moveTo(0,-27);ctx.lineTo(24,18);
+ ctx.lineTo(9,13);ctx.lineTo(0,22);ctx.lineTo(-9,13);
+ ctx.lineTo(-24,18);ctx.closePath();ctx.fill();
+
+ ctx.fillStyle="#bae6fd";
+ ctx.beginPath();ctx.moveTo(0,-25);ctx.lineTo(8,13);
+ ctx.lineTo(0,19);ctx.lineTo(-8,13);ctx.closePath();ctx.fill();
+
+ ctx.fillStyle="#67e8f9";
+ ctx.beginPath();ctx.ellipse(0,-7,5,10,0,0,Math.PI*2);ctx.fill();
+
+ ctx.shadowColor=color;ctx.shadowBlur=18;ctx.fillStyle=color;
+
+ if(level===1)ctx.fillRect(-3,-27,6,9);
+ if(level===2){
+  ctx.fillRect(-17,4,5,13);ctx.fillRect(12,4,5,13);
+ }
+ if(level===3){
+  ctx.fillRect(-17,4,5,13);ctx.fillRect(12,4,5,13);
+  ctx.fillRect(-3,-28,6,12);
+ }
+ if(level===4){
+  ctx.fillRect(-22,2,5,15);ctx.fillRect(17,2,5,15);
+  ctx.fillRect(-9,-21,5,13);ctx.fillRect(4,-21,5,13);
+  ctx.fillRect(-3,-29,6,14);
+ }
+ if(level===5){
+  ctx.fillRect(-25,0,7,19);ctx.fillRect(18,0,7,19);
+  ctx.fillRect(-12,-22,7,15);ctx.fillRect(5,-22,7,15);
+  ctx.fillRect(-4,-32,8,18);
+  ctx.fillStyle="#fef3c7";
+  ctx.fillRect(-28,5,4,10);ctx.fillRect(24,5,4,10);
+ }
+ ctx.restore();
+}
+
+function drawEnemy(e){
+ ctx.save();ctx.translate(e.x,e.y);
+ let color=e.type==="square"?"#c084fc":
+  e.type==="triangle"?"#f97316":"#fb7185";
+
+ ctx.shadowColor=color;ctx.shadowBlur=15;ctx.fillStyle=color;
+ if(e.type==="circle"){
+  ctx.beginPath();ctx.arc(0,0,e.radius,0,Math.PI*2);ctx.fill();
+ }else if(e.type==="triangle"){
+  ctx.beginPath();ctx.moveTo(0,-e.radius);ctx.lineTo(e.radius,e.radius);
+  ctx.lineTo(-e.radius,e.radius);ctx.closePath();ctx.fill();
+ }else{
+  ctx.fillRect(-e.radius,-e.radius,e.radius*2,e.radius*2);
+ }
+
+ ctx.shadowBlur=0;ctx.fillStyle="#1e293b";
+ ctx.beginPath();ctx.arc(-7,-3,3,0,Math.PI*2);
+ ctx.arc(7,-3,3,0,Math.PI*2);ctx.fill();
+
+ // Viditelné kanóny
+ ctx.shadowColor=color;ctx.shadowBlur=12;
+ if(e.type==="circle"){
+  ctx.fillStyle="#7f1d1d";ctx.fillRect(-5,13,10,13);
+  ctx.fillStyle="#fecdd3";ctx.fillRect(-3,22,6,7);
+ }else if(e.type==="triangle"){
+  ctx.fillStyle="#9a3412";
+  ctx.save();ctx.rotate(-0.35);ctx.fillRect(-17,7,7,19);ctx.restore();
+  ctx.save();ctx.rotate(0.35);ctx.fillRect(10,7,7,19);ctx.restore();
+  ctx.fillStyle="#fed7aa";
+  ctx.fillRect(-17,20,5,5);ctx.fillRect(12,20,5,5);
+ }else{
+  ctx.fillStyle="#581c87";
+  ctx.fillRect(-18,10,8,19);ctx.fillRect(10,10,8,19);
+  ctx.fillStyle="#e9d5ff";
+  ctx.fillRect(-16,24,4,7);ctx.fillRect(12,24,4,7);
+ }
+
+ if(e.shield){
+  ctx.strokeStyle="#67e8f9";ctx.lineWidth=3;
+  ctx.shadowColor="#22d3ee";ctx.shadowBlur=15;
+  ctx.beginPath();ctx.arc(0,0,e.radius+8,0,Math.PI*2);ctx.stroke();
+ }
+ if(e.hp>1){
+  ctx.fillStyle="#e2e8f0";ctx.font="bold 12px Arial";
+  ctx.textAlign="center";ctx.fillText(e.hp,0,e.radius+17);
+ }
+ ctx.restore();
+}
+
+function drawBoss(){
+ if(!boss)return;
+ ctx.save();ctx.translate(boss.x,boss.y);
+ ctx.shadowColor="#ef4444";ctx.shadowBlur=30;
+
+ const gradient=ctx.createLinearGradient(-75,-55,75,55);
+ gradient.addColorStop(0,"#7f1d1d");
+ gradient.addColorStop(.5,"#dc2626");
+ gradient.addColorStop(1,"#450a0a");
+ ctx.fillStyle=gradient;
+ ctx.beginPath();ctx.moveTo(0,-65);ctx.lineTo(65,-25);
+ ctx.lineTo(78,25);ctx.lineTo(35,48);ctx.lineTo(0,60);
+ ctx.lineTo(-35,48);ctx.lineTo(-78,25);ctx.lineTo(-65,-25);
+ ctx.closePath();ctx.fill();
+
+ ctx.fillStyle="#991b1b";
+ ctx.beginPath();ctx.moveTo(-50,-15);ctx.lineTo(-110,35);
+ ctx.lineTo(-60,28);ctx.closePath();ctx.fill();
+ ctx.beginPath();ctx.moveTo(50,-15);ctx.lineTo(110,35);
+ ctx.lineTo(60,28);ctx.closePath();ctx.fill();
+
+ ctx.shadowColor="#f97316";ctx.shadowBlur=18;
+ ctx.fillStyle="#7f1d1d";
+ ctx.fillRect(-66,10,20,35);ctx.fillRect(46,10,20,35);
+ ctx.fillRect(-18,38,14,27);ctx.fillRect(4,38,14,27);
+ ctx.fillStyle="#fbbf24";
+ ctx.fillRect(-61,35,10,10);ctx.fillRect(51,35,10,10);
+ ctx.fillRect(-15,57,8,8);ctx.fillRect(7,57,8,8);
+
+ ctx.shadowColor="#fef08a";ctx.shadowBlur=25;
+ ctx.fillStyle="#facc15";
+ ctx.beginPath();ctx.arc(0,5,20,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#fff7ed";
+ ctx.beginPath();ctx.arc(0,5,8,0,Math.PI*2);ctx.fill();
+
+ if(boss.shield){
+  ctx.strokeStyle="#67e8f9";ctx.lineWidth=4;
+  ctx.shadowColor="#22d3ee";ctx.shadowBlur=25;
+  ctx.beginPath();ctx.ellipse(0,0,95,75,0,0,Math.PI*2);ctx.stroke();
+ }
+ ctx.restore();
+
+ ctx.fillStyle="#334155";ctx.fillRect(W/2-180,25,360,15);
+ ctx.fillStyle="#ef4444";
+ ctx.fillRect(W/2-180,25,360*Math.max(0,boss.hp/boss.maxHp),15);
+ ctx.strokeStyle="#fecaca";ctx.strokeRect(W/2-180,25,360,15);
+ ctx.fillStyle="#fff";ctx.font="bold 14px Arial";ctx.textAlign="center";
+ ctx.fillText("BOSS: "+boss.hp+" / "+boss.maxHp,W/2,18);
+}
+
+function drawBullets(){
+ for(const b of bullets){
+  ctx.save();ctx.shadowColor=b.color;ctx.shadowBlur=18;
+  ctx.strokeStyle=b.color;ctx.lineWidth=b.width;ctx.lineCap="round";
+  ctx.beginPath();ctx.moveTo(b.x,b.y+15);
+  ctx.lineTo(b.x-b.vx*2,b.y-10);ctx.stroke();
+  ctx.strokeStyle="#fff";ctx.lineWidth=Math.max(2,b.width*.35);
+  ctx.beginPath();ctx.moveTo(b.x,b.y+10);ctx.lineTo(b.x,b.y-7);ctx.stroke();
+  ctx.restore();
+ }
+}
+
+function drawEnemyBullets(){
+ for(const b of enemyBullets){
+  ctx.save();
+  ctx.shadowColor=b.color;ctx.shadowBlur=15;
+  ctx.strokeStyle=b.color;ctx.lineWidth=b.width||5;
+  ctx.lineCap="round";
+  ctx.beginPath();ctx.moveTo(b.x-b.vx*1.5,b.y-10);
+  ctx.lineTo(b.x,b.y+10);ctx.stroke();
+  ctx.fillStyle=b.core||"#fff";
+  ctx.beginPath();ctx.arc(b.x,b.y,3,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+ }
+}
+
+function drawParticles(){
+ for(const p of particles){
+  ctx.globalAlpha=Math.max(0,p.life/p.maxLife);
+  ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=12;
+  ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalAlpha=1;ctx.shadowBlur=0;
+}
+
+function drawScene(){
+ ctx.save();
+ if(shake>0){
+  ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  shake*=.88;if(shake<.5)shake=0;
+ }
+ drawBackground();
+ if(level<5)enemies.forEach(drawEnemy);else drawBoss();
+ drawBullets();drawEnemyBullets();drawParticles();drawPlayer();
+ ctx.restore();
+}
+
+function fireWeapon(){
+ if(shootTimer>0||!gameRunning||gamePaused)return;
+ const color=WEAPON_COLORS[level];
+ const base={
+  y:player.y-23,vy:-10.5,color,
+  width:level>=4?6:4,
+  damage:level===5?3:level===4?2:1
+ };
+ let positions=[];
+ if(level===1)positions=[0];
+ else if(level===2)positions=[-14,14];
+ else if(level===3)positions=[-17,0,17];
+ else if(level===4)positions=[-25,-12,0,12,25];
+ else positions=[-24,24];
+
+ for(const offset of positions){
+  bullets.push({
+   ...base,x:player.x+offset,
+   vx:level===4?offset*.035:0
+  });
+ }
+ shootTimer=level===1?16:level===2?14:level===3?12:level===4?10:8;
+}
+
+function useBomb(){
+ if(!bombReady||!gameRunning||gamePaused)return;
+ bombReady=false;updateHUD();
+ createExplosion(player.x,player.y,"#facc15",45);
+
+ for(const e of [...enemies]){
+  if(e.shield)e.shield=false;
+  else{e.hp-=3;if(e.hp<=0)destroyEnemy(e);}
+ }
+ if(boss){
+  if(boss.shield)boss.shield=false;
+  else{
+   boss.hp-=10;
+   if(boss.hp<=0){
+    createExplosion(boss.x,boss.y,"#facc15",70);
+    boss=null;score+=1000;updateHUD();levelComplete();
+   }
+  }
+ }
+ enemyBullets=[];
+ updateHUD();
+ setTimeout(()=>{
+  if(gameRunning&&!gamePaused){bombReady=true;updateHUD();}
+ },8000);
+}
+
+function updatePlayer(dt){
+ const step=player.speed*dt;
+ if(keys.ArrowLeft||keys.a||keys.A)player.x-=step;
+ if(keys.ArrowRight||keys.d||keys.D)player.x+=step;
+ if(keys.ArrowUp||keys.w||keys.W)player.y-=step;
+ if(keys.ArrowDown||keys.s||keys.S)player.y+=step;
+ player.x=Math.max(28,Math.min(W-28,player.x));
+ player.y=Math.max(35,Math.min(H-30,player.y));
+ if(player.invulnerable>0)player.invulnerable-=dt;
+ if(shootTimer>0)shootTimer-=dt;
+ if(keys[" "]||keys.Space)fireWeapon();
+}
+
+function enemyShot(e){
+ const baseColor=e.type==="square"?"#c084fc":
+  e.type==="triangle"?"#fb923c":"#fb7185";
+
+ if(e.type==="circle"){
+  enemyBullets.push({
+   x:e.x,y:e.y+20,vx:0,vy:3.1+level*.15,
+   damage:level,color:baseColor,width:5
+  });
+ }else if(e.type==="triangle"){
+  for(const side of [-1,1]){
+   enemyBullets.push({
+    x:e.x+side*12,y:e.y+20,
+    vx:side*2.1,vy:3.3+level*.12,
+    damage:level,color:baseColor,width:5
+   });
+  }
+ }else{
+  for(const side of [-1,1]){
+   enemyBullets.push({
+    x:e.x+side*13,y:e.y+24,
+    vx:side*.65,vy:3.8+level*.12,
+    damage:level,color:baseColor,width:7
+   });
+  }
+ }
+}
+
+function updateEnemies(dt){
+ /* Další jednotka přilétá přibližně každých 1,4–1,8 sekundy. */
+ if(spawnQueue.length>0){
+  spawnTimer-=dt;
+  if(spawnTimer<=0){
+   createEnemy(spawnQueue.shift());
+   spawnTimer=85+Math.random()*25;
+  }
+ }
+ for(const e of [...enemies]){
+  e.phase+=.03*dt;
+  e.y+=e.speed*dt;
+  e.x+=Math.sin(e.phase)*.45*dt;
+  e.shootTimer-=dt;
+
+  if(e.shootTimer<=0){
+   enemyShot(e);
+   e.shootTimer=FIRE_INTERVALS[level]+Math.random()*35;
+  }
+
+  if(e.y>H+40){
+   // Pouhé proletění mimo obrazovku hráče nepoškodí.
+   // Nepřítel se vrátí nahoru a může být znovu sestřelen.
+   e.y=-55-Math.random()*45;
+   e.x=70+Math.random()*(W-140);
+   e.shootTimer=100+Math.random()*100;
+   continue;
+  }
+  // Život se odečte pouze při skutečném fyzickém střetu.
+  if(Math.hypot(player.x-e.x,player.y-e.y)<player.radius+e.radius){
+   removeEnemy(e);damagePlayer();
+  }
+ }
+}
+
+function removeEnemy(e){
+ const i=enemies.indexOf(e);
+ if(i!==-1)enemies.splice(i,1);
+}
+
+function destroyEnemy(e){
+ if(!enemies.includes(e))return;
+ const color=e.type==="square"?"#c084fc":
+  e.type==="triangle"?"#f97316":"#fb7185";
+ createExplosion(e.x,e.y,color,20);
+ removeEnemy(e);destroyed++;
+ score+=e.type==="square"?150:e.type==="triangle"?100:50;
+ updateHUD();
+ if(destroyed>=ENEMIES_PER_LEVEL&&enemies.length===0&&spawnQueue.length===0)levelComplete();
+}
+
+function bossShot(){
+ if(!boss)return;
+ const attack=boss.attack%3;
+ boss.attack++;
+
+ if(attack===0){
+  for(const side of [-1,1]){
+   enemyBullets.push({
+    x:boss.x+side*55,y:boss.y+42,
+    vx:side*.5,vy:4.1,
+    damage:5,color:"#f97316",width:9
+   });
+  }
+ }else if(attack===1){
+  for(const vx of [-2.5,0,2.5]){
+   enemyBullets.push({
+    x:boss.x,y:boss.y+45,
+    vx,vy:4.2,damage:5,color:"#ef4444",width:7
+   });
+  }
+ }else{
+  for(const side of [-1,1]){
+   const originX=boss.x+side*55;
+   const dx=player.x-originX;
+   const vx=Math.max(-3.2,Math.min(3.2,dx*.012));
+   enemyBullets.push({
+    x:originX,y:boss.y+45,
+    vx,vy:4.6,damage:5,color:"#fbbf24",width:8
+   });
+  }
+ }
+}
+
+function updateBoss(dt){
+ if(!boss)return;
+ boss.phase+=.02*dt;
+ boss.x+=boss.direction*1.8*dt;
+ if(boss.x>W-130)boss.direction=-1;
+ if(boss.x<130)boss.direction=1;
+ boss.y=125+Math.sin(boss.phase)*20;
+ boss.shootTimer-=dt;
+ if(boss.shootTimer<=0){
+  bossShot();
+  boss.shootTimer=85;
+ }
+ if(Math.hypot(player.x-boss.x,player.y-boss.y)<80)damagePlayer();
+}
+
+function updateBullets(dt){
+ for(const b of [...bullets]){
+  b.x+=b.vx*dt;b.y+=b.vy*dt;
+  if(b.y<-30||b.x<-30||b.x>W+30){
+   bullets.splice(bullets.indexOf(b),1);continue;
+  }
+
+  if(boss&&Math.hypot(b.x-boss.x,b.y-boss.y)<boss.radius){
+   bullets.splice(bullets.indexOf(b),1);
+   if(boss.shield)openQuestion(boss);
+   else{
+    boss.hp-=b.damage;
+    createExplosion(b.x,b.y,"#fbbf24",4);
+    if(boss.hp<=0){
+     createExplosion(boss.x,boss.y,"#facc15",80);
+     boss=null;score+=1000;updateHUD();levelComplete();return;
+    }
+   }
+   continue;
+  }
+
+  for(const e of [...enemies]){
+   if(Math.hypot(b.x-e.x,b.y-e.y)<e.radius+5){
+    bullets.splice(bullets.indexOf(b),1);
+    if(e.shield)openQuestion(e);
+    else{
+     e.hp-=b.damage;
+     createExplosion(b.x,b.y,WEAPON_COLORS[level],4);
+     if(e.hp<=0)destroyEnemy(e);
+    }
+    break;
+   }
+  }
+ }
+}
+
+function updateEnemyBullets(dt){
+ for(const b of [...enemyBullets]){
+  b.x+=b.vx*dt;b.y+=b.vy*dt;
+  if(b.y>H+30||b.x<-30||b.x>W+30){
+   enemyBullets.splice(enemyBullets.indexOf(b),1);continue;
+  }
+  if(Math.hypot(player.x-b.x,player.y-b.y)<player.radius+7){
+   enemyBullets.splice(enemyBullets.indexOf(b),1);
+   damagePlayer();
+  }
+ }
+}
+
+function updateParticles(dt){
+ for(const p of [...particles]){
+  p.x+=p.vx*dt;p.y+=p.vy*dt;
+  p.vx*=.98;p.vy*=.98;p.life-=dt;
+  if(p.life<=0)particles.splice(particles.indexOf(p),1);
+ }
+}
+
+function openQuestion(target){
+ if(gamePaused)return;
+ gamePaused=true;questionTarget=target;
+ const bank=getQuestionBank(level);
+ questionData=bank[Math.floor(Math.random()*bank.length)];
+ $("questionText").textContent=questionData.q;
+ $("feedback").textContent="";
+ $("answers").innerHTML="";
+ questionData.a.forEach((answer,index)=>{
+  const button=document.createElement("button");
+  button.textContent=answer;
+  button.onclick=()=>answerQuestion(index);
+  $("answers").appendChild(button);
+ });
+ $("questionScreen").classList.remove("hidden");
+}
+
+function answerQuestion(index){
+ const correct=index===questionData.correct;
+ const target=questionTarget;
+
+ if(correct){
+  // Správná odpověď jako jediná deaktivuje štít.
+  if(target)target.shield=false;
+  score+=100;
+  $("feedback").textContent="SPRÁVNĚ! ŠTÍT DEAKTIVOVÁN!";
+  $("feedback").style.color="#4ade80";
+ }else{
+  // Při chybě štít zůstává aktivní a nepřítel získá další výdrž.
+  // Hráč se vrátí do hry a musí do stejného nepřítele znovu vystřelit.
+  if(target){
+   target.shield=true;
+   if(target===boss){
+    target.hp+=15;
+    target.maxHp+=15;
+   }else{
+    target.hp+=1;
+    target.maxHp+=1;
+   }
+  }
+  score=Math.max(0,score-20);
+  $("feedback").textContent="CHYBA! ŠTÍT DRŽÍ, NEPŘÍTEL ZESÍLIL. ZNOVU STŘÍLEJ!";
+  $("feedback").style.color="#fb7185";
+ }
+ updateHUD();
+ setTimeout(()=>{
+  $("questionScreen").classList.add("hidden");
+  questionTarget=null;questionData=null;
+  gamePaused=false;lastTime=performance.now();
+ },1100);
+}
+
+function getQuestionBank(lvl){
+ // Otázky jsou zaměřené na bod, náležení, přímku, úsečku,
+ // polopřímku, kružnici a průnik geometrických útvarů.
+ const banks={
+  1:[
+   {q:"Bod A leží na přímce p. Který zápis je správný?",a:["A ∈ p","A ∉ p","p ∈ A","A = p"],correct:0},
+   {q:"Bod B neleží na přímce q. Jak to zapíšeme?",a:["B ∈ q","B ∉ q","q ∈ B","B = q"],correct:1},
+   {q:"Jak se v geometrii obvykle označuje bod?",a:["Malým písmenem","Velkým písmenem","Řeckým písmenem","Číslem s jednotkou"],correct:1},
+   {q:"Přímka a obsahuje body A, B a C. Které tvrzení platí?",a:["A ∉ a","B ∈ a","C ∉ a","a ∈ C"],correct:1},
+   {q:"Co znamená zápis P ∉ k?",a:["Bod P leží na k","Bod P neleží na k","P je přímka k","P je průsečík k"],correct:1},
+   {q:"Kolik bodů je potřeba k jednoznačnému určení přímky?",a:["Jeden","Dva různé body","Tři libovolné body","Čtyři body"],correct:1}
+  ],
+  2:[
+   {q:"Který útvar má dva krajní body?",a:["Přímka","Úsečka","Polopřímka","Kružnice"],correct:1},
+   {q:"Který útvar nemá žádný krajní bod a pokračuje na obě strany?",a:["Přímka","Úsečka","Polopřímka","Kružnice"],correct:0},
+   {q:"Který útvar má právě jeden počáteční bod?",a:["Přímka","Úsečka","Polopřímka","Kružnice"],correct:2},
+   {q:"Polopřímka AB začíná v bodě…",a:["A a prochází B","B a prochází A","Uprostřed AB","Nemá počátek"],correct:0},
+   {q:"Který geometrický útvar má dva krajní body a lze změřit jeho délku?",a:["Přímka","Úsečka","Polopřímka","Kružnice"],correct:1},
+   {q:"Kolik různých přímek lze vést dvěma různými body A a B?",a:["Jednu","Dvě","Tři","Nekonečně mnoho"],correct:0},
+   {q:"Bod A je počátkem polopřímky AB. Kterým směrem polopřímka pokračuje?",a:["Od A přes B dál","Od B přes A zpět","Na obě strany od A","Končí v bodě B"],correct:0}
+  ],
+  3:[
+   {q:"Přímky p a q mají jeden společný bod P. Jak se tento bod nazývá?",a:["Střed","Průsečík","Poloměr","Počátek"],correct:1},
+   {q:"Přímky p a q jsou rovnoběžné a různé. Jaký je jejich průnik?",a:["Jeden bod","Dva body","∅","Celá přímka"],correct:2},
+   {q:"Přímky p a q se protínají v bodě A. Který zápis je správný?",a:["p ∩ q = {A}","p ∈ q = A","p ∪ q = ∅","A ∉ p"],correct:0},
+   {q:"Co vyjadřuje symbol ∩?",a:["Náleží","Průnik","Je rovnoběžný","Je kolmý"],correct:1},
+   {q:"Co znamená zápis p ∩ q = ∅?",a:["Přímky mají jeden průsečík","Přímky jsou totožné","Nemají žádný společný bod","Jsou kolmé"],correct:2},
+   {q:"Kolik společných bodů mají dvě různé přímky v rovině, které nejsou rovnoběžné?",a:["Žádný","Jeden","Dva","Nekonečně mnoho"],correct:1}
+  ],
+  4:[
+   {q:"Co je kružnice k se středem S a poloměrem r?",a:["Množina bodů ve vzdálenosti r od S","Všechny body uvnitř kruhu","Přímka procházející S","Úsečka délky r"],correct:0},
+   {q:"Bod A leží na kružnici k. Jaký zápis platí?",a:["A ∈ k","A ∉ k","k ∈ A","A = k"],correct:0},
+   {q:"Bod B leží uvnitř kruhu, ale ne na kružnici k. Co platí?",a:["B ∈ k","B ∉ k","k ∈ B","B = k"],correct:1},
+   {q:"Jak se nazývá úsečka spojující střed kružnice s bodem kružnice?",a:["Průměr","Poloměr","Tětiva","Průsečík"],correct:1},
+   {q:"Kolik společných bodů může mít přímka a kružnice?",a:["Vždy jeden","Nejvýše dva","Vždy dva","Nekonečně mnoho"],correct:1},
+   {q:"Přímka se kružnice dotýká v jediném bodě. Jak se nazývá tento bod?",a:["Průsečík","Bod dotyku","Střed","Počátek"],correct:1}
+  ],
+  5:[
+   {q:"Bod A leží na přímce p. Bod B na ní neleží. Který zápis je správný?",a:["A ∈ p a B ∉ p","A ∉ p a B ∈ p","A ∈ p a B ∈ p","p ∈ A a p ∈ B"],correct:0},
+   {q:"Dvě úsečky AB a CD mají společný pouze bod B, přičemž B = C. Jaký je jejich průnik?",a:["∅","{B}","Přímka AB","Celá úsečka CD"],correct:1},
+   {q:"Dvě různé kolmé přímky p a q se protínají v bodě S. Jak zapíšeme jejich průnik?",a:["p ∩ q = ∅","p ∩ q = {S}","p ∈ q = S","p ∩ q = p"],correct:1},
+   {q:"Který zápis vyjadřuje, že bod M leží současně na přímkách p i q?",a:["M ∈ p ∩ q","M ∉ p ∩ q","p ∈ M","M = p ∪ q"],correct:0},
+   {q:"Kružnice k má střed S a poloměr 4 cm. Bod A je od S vzdálen 4 cm. Co platí?",a:["A ∈ k","A ∉ k","A = S","A leží uvnitř kružnice, ale ne na ní"],correct:0},
+   {q:"Přímka protíná kružnici ve dvou různých bodech. Jak se nazývá?",a:["Tečna","Sečna","Rovnoběžka","Poloměr"],correct:1},
+   {q:"Přímka se kružnice dotýká právě v jednom bodě. Jak se nazývá?",a:["Sečna","Tečna","Úsečka","Polopřímka"],correct:1},
+   {q:"Bod C leží na úsečce AB. Který zápis vyjadřuje jeho náležení?",a:["C ∈ AB","C ∉ AB","AB ∈ C","C = AB"],correct:0},
+   {q:"Dvě různé rovnoběžné přímky p a q nemají společný bod. Jaký je jejich průnik?",a:["{P}","∅","Celá přímka p","Dva body"],correct:1}
+  ]
+ };
+ return banks[lvl]||banks[1];
+}
+
+function loop(timestamp){
+ if(!gameRunning){rafStarted=false;return;}
+ const dt=Math.min((timestamp-lastTime)/16.67||1,2);
+ lastTime=timestamp;
+
+ if(!gamePaused){
+  updateStars(dt);
+  updatePlayer(dt);
+  if(level<5)updateEnemies(dt);
+  else updateBoss(dt);
+  updateBullets(dt);
+  updateEnemyBullets(dt);
+  updateParticles(dt);
+ }
+ drawScene();
+ requestAnimationFrame(loop);
+}
+
+window.addEventListener("keydown",e=>{
+ if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key))e.preventDefault();
+ keys[e.key]=true;
+ if(e.key==="Shift"&&!keys.shiftUsed){
+  useBomb();keys.shiftUsed=true;
+ }
+});
+
+window.addEventListener("keyup",e=>{
+ keys[e.key]=false;
+ if(e.key==="Shift")keys.shiftUsed=false;
+});
+
+document.querySelectorAll("[data-key]").forEach(button=>{
+ const key=button.dataset.key;
+ button.addEventListener("pointerdown",e=>{
+  e.preventDefault();keys[key]=true;
+  button.setPointerCapture(e.pointerId);
+ });
+ const release=e=>{e.preventDefault();keys[key]=false;};
+ button.addEventListener("pointerup",release);
+ button.addEventListener("pointercancel",release);
+ button.addEventListener("lostpointercapture",()=>{keys[key]=false;});
+});
+
+const touchShoot=$("touchShoot");
+touchShoot.addEventListener("pointerdown",e=>{
+ e.preventDefault();keys[" "]=true;
+});
+["pointerup","pointercancel","lostpointercapture"].forEach(name=>{
+ touchShoot.addEventListener(name,()=>{keys[" "]=false;});
+});
+
+$("touchBomb").addEventListener("pointerdown",e=>{
+ e.preventDefault();useBomb();
+});
+
+updateHUD();
+drawScene();
+</script>
+</body>
+</html>
