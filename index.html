@@ -1,108 +1,338 @@
-
 <!DOCTYPE html>
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Školní herna</title>
+<meta name="theme-color" content="#101a33">
+<title>Školní herna | Učíme se hrou</title>
 
 <style>
+:root {
+    --bg: #0b1224;
+    --panel: #141f38;
+    --panel-light: #1b2947;
+    --text: #f8fafc;
+    --muted: #a8b5cc;
+    --blue: #60a5fa;
+    --cyan: #22d3ee;
+    --purple: #a78bfa;
+    --border: rgba(255,255,255,0.09);
+}
+
 * {
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f1f5f9;
-    color: #1e293b;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(ellipse at 15% 5%, rgba(37,99,235,0.22), transparent 35%),
+        radial-gradient(ellipse at 90% 30%, rgba(124,58,237,0.17), transparent 35%),
+        var(--bg);
+    min-height: 100vh;
 }
 
 header {
-    background: linear-gradient(135deg, #2563eb, #7c3aed);
-    color: white;
+    padding: 65px 20px 55px;
     text-align: center;
-    padding: 55px 20px;
+    background: linear-gradient(135deg, rgba(37,99,235,0.25), rgba(124,58,237,0.22));
+    border-bottom: 1px solid var(--border);
+}
+
+.header-label {
+    display: inline-block;
+    padding: 8px 15px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(96,165,250,0.35);
+    border-radius: 30px;
+    background: rgba(37,99,235,0.15);
+    color: #bfdbfe;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
 }
 
 header h1 {
-    font-size: 42px;
-    margin: 0 0 12px;
+    margin: 0;
+    font-size: clamp(36px, 6vw, 58px);
+    letter-spacing: -1.5px;
+}
+
+header h1 span {
+    background: linear-gradient(90deg, #60a5fa, #a78bfa, #22d3ee);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
 }
 
 header p {
+    max-width: 620px;
+    margin: 18px auto 0;
+    color: #cbd5e1;
     font-size: 18px;
-    margin: 0;
+    line-height: 1.6;
 }
 
 main {
-    max-width: 1100px;
-    margin: 35px auto;
-    padding: 0 20px;
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 45px 22px 65px;
+}
+
+.section-heading {
+    margin-bottom: 25px;
+}
+
+.section-heading h2 {
+    margin: 0 0 9px;
+    font-size: 27px;
+}
+
+.section-heading p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.5;
 }
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 22px;
+    grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+    gap: 20px;
 }
 
 .card {
-    background: white;
-    border-radius: 18px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 275px;
     padding: 25px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.07);
-    transition: transform 0.2s;
+    background: linear-gradient(145deg, var(--panel-light), var(--panel));
+    border: 1px solid var(--border);
+    border-radius: 19px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.16);
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--accent, var(--blue));
+    opacity: 0.9;
 }
 
 .card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-6px);
+    border-color: rgba(96,165,250,0.4);
+    box-shadow: 0 18px 38px rgba(0,0,0,0.25);
 }
 
-.emoji {
-    font-size: 48px;
-    margin-bottom: 12px;
+.card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 62px;
+    height: 62px;
+    margin-bottom: 20px;
+    border-radius: 17px;
+    background: rgba(255,255,255,0.08);
+    font-size: 34px;
 }
 
-.card h2 {
-    margin: 0 0 10px;
-    font-size: 24px;
+.card h3 {
+    margin: 0 0 12px;
+    font-size: 22px;
 }
 
 .card p {
-    color: #64748b;
-    line-height: 1.5;
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: 15px;
+    flex-grow: 1;
 }
 
 .game-link {
-    display: inline-block;
-    margin-top: 12px;
-    padding: 11px 18px;
-    background: #2563eb;
-    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+    gap: 9px;
+    margin-top: 22px;
+    padding: 12px 17px;
+    color: #081326;
+    background: var(--accent, #60a5fa);
+    border-radius: 10px;
     text-decoration: none;
-    border-radius: 9px;
     font-weight: bold;
+    font-size: 14px;
+    transition: filter 0.2s, transform 0.2s;
 }
 
 .game-link:hover {
-    background: #1d4ed8;
+    filter: brightness(1.12);
+    transform: translateX(3px);
 }
 
 .soon {
     display: inline-block;
-    margin-top: 12px;
-    padding: 8px 13px;
-    background: #e2e8f0;
-    color: #64748b;
+    align-self: flex-start;
+    margin-top: 22px;
+    padding: 9px 13px;
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius: 8px;
+    color: #cbd5e1;
+    background: rgba(255,255,255,0.06);
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.qr-section {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 35px;
+    margin-top: 42px;
+    padding: 30px;
+    background: linear-gradient(120deg, #172c50, #202449);
+    border: 1px solid rgba(96,165,250,0.2);
+    border-radius: 22px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+.qr-text h2 {
+    margin: 0 0 12px;
+    font-size: 25px;
+}
+
+.qr-text p {
+    max-width: 560px;
+    margin: 0;
+    color: #cbd5e1;
+    line-height: 1.7;
+}
+
+.qr-hint {
+    margin-top: 18px;
+    color: #93c5fd;
     font-size: 14px;
+    font-weight: bold;
+}
+
+.qr-box {
+    width: 190px;
+    padding: 14px;
+    background: white;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.qr-box img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.qr-caption {
+    margin-top: 8px;
+    color: #1e293b;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.print-button {
+    display: inline-block;
+    margin-top: 18px;
+    padding: 10px 15px;
+    color: white;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.print-button:hover {
+    background: rgba(255,255,255,0.2);
 }
 
 footer {
+    padding: 25px 20px;
+    border-top: 1px solid var(--border);
+    color: #8291aa;
     text-align: center;
-    padding: 25px;
-    color: #64748b;
+    font-size: 13px;
+}
+
+@media (max-width: 650px) {
+    header {
+        padding: 48px 18px 42px;
+    }
+
+    main {
+        padding: 32px 16px 45px;
+    }
+
+    .qr-section {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+        gap: 25px;
+        padding: 25px 18px;
+    }
+
+    .qr-box {
+        width: 185px;
+    }
+
+    .card {
+        min-height: 250px;
+    }
+}
+
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+
+    header, .grid, .section-heading, footer, .qr-text p,
+    .qr-hint, .print-button {
+        display: none !important;
+    }
+
+    main {
+        padding: 0;
+        margin: 0;
+    }
+
+    .qr-section {
+        display: flex;
+        justify-content: center;
+        margin: 30px auto;
+        background: white;
+        border: none;
+        box-shadow: none;
+    }
+
+    .qr-text h2 {
+        display: none;
+    }
+
+    .qr-box {
+        width: 260px;
+    }
 }
 </style>
 </head>
@@ -110,42 +340,94 @@ footer {
 <body>
 
 <header>
-    <h1>🎮 Školní herna</h1>
-    <p>Hry, úkoly a zábavné procvičování pro naše žáky</p>
+    <div class="header-label">Digitální prostor pro žáky</div>
+    <h1>🎮 Školní <span>herna</span></h1>
+    <p>
+        Objevuj, zkoušej, přemýšlej a uč se novým věcem.
+        Vítej ve světě školních her a výzev!
+    </p>
 </header>
 
 <main>
+
+    <div class="section-heading">
+        <h2>Vyber si svůj předmět</h2>
+        <p>Otevři si oblast, která tě zajímá, a pusť se do objevování.</p>
+    </div>
+
     <div class="grid">
 
-        <section class="card">
-            <div class="emoji">🔢</div>
-            <h2>Matematika</h2>
-            <p>Procvičování matematiky prostřednictvím her a úkolů.</p>
-            <a class="game-link" href="./matematika/">Otevřít matematiku →</a>
+        <section class="card" style="--accent:#60a5fa;">
+            <div class="card-icon">🔢</div>
+            <h3>Matematika</h3>
+            <p>
+                Procvičuj počítání, logické myšlení a geometrii
+                prostřednictvím her, úkolů a dobrodružství.
+            </p>
+            <a class="game-link" href="./matematika/">Otevřít matematiku <span>→</span></a>
         </section>
 
-        <section class="card">
-            <div class="emoji">💻</div>
-            <h2>Informatika</h2>
-            <p>Logické úlohy, programování a informatické výzvy.</p>
+        <section class="card" style="--accent:#22d3ee;">
+            <div class="card-icon">💻</div>
+            <h3>Informatika</h3>
+            <p>
+                Vyzkoušej logické úlohy, programování,
+                digitální dovednosti a informatické výzvy.
+            </p>
             <span class="soon">Připravujeme</span>
         </section>
 
-        <section class="card">
-            <div class="emoji">⚛️</div>
-            <h2>Fyzika</h2>
-            <p>Objevování fyzikálních zákonů pomocí zajímavých úkolů.</p>
+        <section class="card" style="--accent:#fbbf24;">
+            <div class="card-icon">⚛️</div>
+            <h3>Fyzika</h3>
+            <p>
+                Objevuj, jak funguje svět kolem nás.
+                Čekají tě pokusy, zajímavosti a fyzikální úkoly.
+            </p>
             <span class="soon">Připravujeme</span>
         </section>
 
-        <section class="card">
-            <div class="emoji">🏰</div>
-            <h2>Dějepis</h2>
-            <p>Historické hry, kvízy a dobrodružné výpravy do minulosti.</p>
+        <section class="card" style="--accent:#a78bfa;">
+            <div class="card-icon">🏰</div>
+            <h3>Dějepis</h3>
+            <p>
+                Vydej se do minulosti, poznej historické události
+                a vyzkoušej si své znalosti v kvízech a hrách.
+            </p>
             <span class="soon">Připravujeme</span>
         </section>
 
     </div>
+
+    <section class="qr-section">
+
+        <div class="qr-text">
+            <h2>📱 Vstup do herny přes QR kód</h2>
+            <p>
+                Máš mobil nebo tablet? Naskenuj QR kód fotoaparátem
+                a otevři si přímo nabídku matematických her.
+                Nemusíš opisovat žádnou adresu ani hledat odkaz v Teams.
+            </p>
+            <div class="qr-hint">
+                Naskenuj → Otevři → Vyber si hru
+            </div>
+            <button class="print-button" onclick="window.print()">
+                🖨️ Vytisknout QR kód
+            </button>
+        </div>
+
+        <div class="qr-box">
+            <img
+                src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fjendadanek.github.io%2Fmatematicke-hry%2Fmatematika%2F"
+                alt="QR kód pro otevření matematických her"
+                width="300"
+                height="300"
+            >
+            <div class="qr-caption">MATEMATICKÉ HRY</div>
+        </div>
+
+    </section>
+
 </main>
 
 <footer>
@@ -154,3 +436,4 @@ footer {
 
 </body>
 </html>
+
