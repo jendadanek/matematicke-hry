@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -6,28 +7,88 @@
 <title>GALAXIE GEOMETRIE – SEKTOR 01</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#050816;color:#e5f3ff;font-family:Arial,sans-serif;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:12px}
-.game{width:100%;max-width:1000px;text-align:center}
+
+body{
+ margin:0;
+ background:#050816;
+ color:#e5f3ff;
+ font-family:Arial,sans-serif;
+ min-height:100vh;
+ display:flex;
+ justify-content:center;
+ align-items:flex-start;
+ padding:12px;
+}
+
+.game{
+ width:100%;
+ max-width:1000px;
+ text-align:center;
+ margin:auto;
+}
+
 h1{margin:5px 0;color:#67e8f9;font-size:clamp(23px,4vw,34px);text-shadow:0 0 15px #0891b2}
 .subtitle{color:#94a3b8;margin-bottom:12px;font-size:13px;letter-spacing:2px}
 .hud{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:10px;background:#111c33;border:1px solid #1e4970;border-radius:10px 10px 0 0;font-weight:bold;font-size:14px}
 .hud span{color:#67e8f9}
-.canvas-wrap{position:relative;background:#020617;border:2px solid #164e75;overflow:hidden;box-shadow:0 0 25px #07598566}
+
+.canvas-wrap{
+ position:relative;
+ background:#020617;
+ border:2px solid #164e75;
+ overflow:hidden;
+ box-shadow:0 0 25px #07598566;
+}
+
 canvas{display:block;width:100%;height:auto;background:#020617}
-.overlay{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:#020617dd;padding:15px;z-index:5}
-.panel{width:min(470px,100%);background:#111c33;border:2px solid #22d3ee;border-radius:15px;padding:22px;box-shadow:0 0 30px #0891b255}
+
+.overlay{
+ position:absolute;
+ inset:0;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ background:#020617dd;
+ padding:15px;
+ z-index:5;
+}
+
+.panel{
+ width:min(470px,100%);
+ background:#111c33;
+ border:2px solid #22d3ee;
+ border-radius:15px;
+ padding:22px;
+ box-shadow:0 0 30px #0891b255;
+}
+
 .panel h2{color:#67e8f9;margin-top:0}
 .panel p{line-height:1.5;color:#cbd5e1}
-button{background:linear-gradient(135deg,#0891b2,#2563eb);border:0;color:white;font-weight:bold;padding:12px 20px;border-radius:8px;cursor:pointer;font-size:15px;margin:5px}
+
+button{
+ background:linear-gradient(135deg,#0891b2,#2563eb);
+ border:0;
+ color:white;
+ font-weight:bold;
+ padding:12px 20px;
+ border-radius:8px;
+ cursor:pointer;
+ font-size:15px;
+ margin:5px;
+}
+
 button:hover{filter:brightness(1.2)}
+
 .answers{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
 .answers button{min-height:52px;margin:0;background:#1e3a5f;border:1px solid #38bdf8}
 .answers button:hover{background:#075985}
+
 .hidden{display:none!important}
 .question-text{font-size:19px;font-weight:bold;color:white;margin:15px 0}
 .feedback{min-height:25px;font-weight:bold;margin-top:12px}
 .controls{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:10px;background:#111c33;border:1px solid #1e4970;border-radius:0 0 10px 10px}
 .control-info{color:#94a3b8;font-size:12px;align-self:center}
+
 .touch-controls{display:none;justify-content:space-between;align-items:center;gap:15px;margin-top:10px}
 .touch-group{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(2,44px);gap:4px}
 .touch-controls button{padding:5px;margin:0;font-size:20px;touch-action:none;user-select:none}
@@ -37,7 +98,45 @@ button:hover{filter:brightness(1.2)}
 .touch-group .right{grid-column:3;grid-row:2}
 .touch-actions{display:flex;gap:8px}
 .touch-actions button{min-width:65px;font-size:13px}
-@media(max-width:700px){.touch-controls{display:flex}.control-info{display:none}.hud{font-size:12px}}
+
+/* Mobilní zobrazení */
+@media(max-width:700px){
+ body{
+  padding:8px;
+  align-items:flex-start;
+ }
+
+ .game{
+  margin:0 auto;
+ }
+
+ .touch-controls{display:flex}
+ .control-info{display:none}
+ .hud{font-size:12px}
+
+ /* Úvodní a ostatní panely přes celou obrazovku.
+    Tlačítko tak nebude oříznuté malou herní plochou. */
+ .overlay{
+  position:fixed;
+  inset:0;
+  min-height:100dvh;
+  overflow-y:auto;
+  align-items:center;
+  justify-content:center;
+  z-index:50;
+ }
+
+ .panel{
+  width:min(470px,100%);
+  max-height:calc(100dvh - 30px);
+  overflow-y:auto;
+  margin:auto;
+ }
+
+ .panel p{font-size:14px}
+ .panel h2{font-size:21px}
+ .overlay button{min-height:48px}
+}
 </style>
 </head>
 <body>
@@ -201,7 +300,6 @@ function startLevel(){
  destroyed=0;enemies=[];bullets=[];enemyBullets=[];boss=null;
  spawnQueue=[];spawnTimer=45;
  bombReady=true;levelTransition=false;
- // Na začátku každého levelu se doplní všech 15 životů.
  lives=15;
  player.x=W/2;player.y=H-85;player.invulnerable=90;
  if(level===5)createBoss();
@@ -209,7 +307,6 @@ function startLevel(){
  updateHUD();
 }
 
-/* Nepřátelé přilétají postupně a jsou rozprostřeni po celé šířce arény. */
 function createEnemy(index){
  let type="circle";
  if(level>=3&&index>=6)type="triangle";
@@ -394,7 +491,6 @@ function drawEnemy(e){
  ctx.beginPath();ctx.arc(-7,-3,3,0,Math.PI*2);
  ctx.arc(7,-3,3,0,Math.PI*2);ctx.fill();
 
- // Viditelné kanóny
  ctx.shadowColor=color;ctx.shadowBlur=12;
  if(e.type==="circle"){
   ctx.fillStyle="#7f1d1d";ctx.fillRect(-5,13,10,13);
@@ -613,7 +709,6 @@ function enemyShot(e){
 }
 
 function updateEnemies(dt){
- /* Další jednotka přilétá přibližně každých 1,4–1,8 sekundy. */
  if(spawnQueue.length>0){
   spawnTimer-=dt;
   if(spawnTimer<=0){
@@ -633,14 +728,11 @@ function updateEnemies(dt){
   }
 
   if(e.y>H+40){
-   // Pouhé proletění mimo obrazovku hráče nepoškodí.
-   // Nepřítel se vrátí nahoru a může být znovu sestřelen.
    e.y=-55-Math.random()*45;
    e.x=70+Math.random()*(W-140);
    e.shootTimer=100+Math.random()*100;
    continue;
   }
-  // Život se odečte pouze při skutečném fyzickém střetu.
   if(Math.hypot(player.x-e.x,player.y-e.y)<player.radius+e.radius){
    removeEnemy(e);damagePlayer();
   }
@@ -790,14 +882,11 @@ function answerQuestion(index){
  const target=questionTarget;
 
  if(correct){
-  // Správná odpověď jako jediná deaktivuje štít.
   if(target)target.shield=false;
   score+=100;
   $("feedback").textContent="SPRÁVNĚ! ŠTÍT DEAKTIVOVÁN!";
   $("feedback").style.color="#4ade80";
  }else{
-  // Při chybě štít zůstává aktivní a nepřítel získá další výdrž.
-  // Hráč se vrátí do hry a musí do stejného nepřítele znovu vystřelit.
   if(target){
    target.shield=true;
    if(target===boss){
@@ -821,8 +910,6 @@ function answerQuestion(index){
 }
 
 function getQuestionBank(lvl){
- // Otázky jsou zaměřené na bod, náležení, přímku, úsečku,
- // polopřímku, kružnici a průnik geometrických útvarů.
  const banks={
   1:[
    {q:"Bod A leží na přímce p. Který zápis je správný?",a:["A ∈ p","A ∉ p","p ∈ A","A = p"],correct:0},
@@ -932,3 +1019,5 @@ drawScene();
 </script>
 </body>
 </html>
+
+
